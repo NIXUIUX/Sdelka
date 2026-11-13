@@ -37,7 +37,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
 
   return (
     <div className={cn('flex flex-col', className)}>
-      <label htmlFor={cbId} className={cn('group/cb inline-flex min-h-7 items-start gap-3 self-start', inert ? 'cursor-not-allowed' : 'cursor-pointer')}>
+      <label htmlFor={cbId} className={cn('group/cb inline-flex min-h-[22px] items-start gap-2.5 self-start', inert ? 'cursor-not-allowed' : 'cursor-pointer')}>
         <input
           ref={inputRef}
           id={cbId}
@@ -56,7 +56,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           aria-hidden
           className={cn(
             !indeterminate && '[&>svg]:hidden peer-checked:[&>svg]:block',
-            'mt-1 grid size-5 shrink-0 place-items-center rounded-6 border-[1.5px] text-surface-white transition-[background-color,border-color] duration-150',
+            'mt-px grid size-5 shrink-0 place-items-center rounded-6 border-[1.5px] text-surface-white transition-[background-color,border-color] duration-150',
             'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-action-primary',
             // базовое: белый, серая рамка; при наведении — синяя
             'border-border-default bg-surface-white group-hover/cb:border-action-primary',
@@ -74,12 +74,12 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           )}
         </span>
         {label && (
-          <span className={cn('py-0.75 text-body-m', disabled ? 'text-text-disabled' : locked ? 'text-text-secondary' : 'text-text-primary')}>
+          <span className={cn('text-body-m', disabled ? 'text-text-disabled' : locked ? 'text-text-secondary' : 'text-text-primary')}>
             {label}
           </span>
         )}
       </label>
-      {helper && <p id={`${cbId}-help`} className="mt-0.5 ml-8 text-caption text-text-secondary">{helper}</p>}
+      {helper && <p id={`${cbId}-help`} className="mt-0.5 ml-[30px] text-caption text-text-secondary">{helper}</p>}
     </div>
   );
 });

@@ -23,3 +23,6 @@ export {
   type AppHeaderProps, type FlowHeadProps, type StepItemProps, type StepState, type StepsNavProps, type BottomBarProps, type HelpCardProps, type HStepsProps,
 } from './Layout';
 export { SearchField, type SearchFieldProps } from './SearchField';
+export {
+  Card, SectionTitle, PageLayout, FormGrid, Inset, IconTile, NumberedStep, ProgressBar, SecureNote, Hint, LoadingState, type CardProps,
+} from './Surface';

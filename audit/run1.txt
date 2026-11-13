@@ -1,0 +1,183 @@
+△ Button primary M
+    lineHeight: 22px → 20px
+△ Button outline M
+    lineHeight: 22px → 20px
+△ Button outline S
+    lineHeight: 22px → 18px
+△ Button sm «Прескоринг»
+    lineHeight: 22px → 20px
+△ Link «Изменить»
+    lineHeight: 22px → 18px
+    height: 22px → 18px
+    columnGap: normal → 8px
+    height: 22px → 18px
+△ Ghost-link «Сброс фильтров»
+    lineHeight: 22px → 18px
+    columnGap: 6px → 8px
+△ Field (заполнено)
+    color: rgba(26, 26, 26, 0.65) → rgb(26, 26, 26)
+    backgroundColor: rgb(248, 250, 254) → rgb(255, 255, 255)
+    height: 66px → 64px
+    height: 66px → 64px
+✓ Field · подпись
+△ Field · значение
+    color: rgba(26, 26, 26, 0.65) → rgb(26, 26, 26)
+    paddingTop: 4px → 2px
+    height: 26px → 24px
+    height: 26px → 24px
+✓ Field · подсказка
+△ Select
+    paddingRight: 40px → 48px
+✓ Select · значение
+△ Checkbox
+    color: rgb(26, 26, 26) → rgb(255, 255, 255)
+△ Checkbox · подпись
+    paddingTop: 0px → 3px
+    paddingBottom: 0px → 3px
+    height: 22px → 28px
+    height: 22px → 28px
+✓ Switch · дорожка
+✓ Switch · подпись
+✓ Switch · пояснение
+△ Chip active
+    fontSize: 13px → 14px
+△ Chip · подпись
+    lineHeight: 22px → 18px
+    height: 22px → 18px
+    height: 22px → 18px
+△ Badge accent
+    lineHeight: 22px → 18px
+△ Avatar
+    fontSize: 12px → 11px
+    fontWeight: 600 → 400
+    color: rgb(12, 42, 208) → rgba(26, 26, 26, 0.65)
+    backgroundColor: rgb(238, 246, 254) → rgba(0, 0, 0, 0)
+    borderTopLeftRadius: 999px → 0px
+    height: 36px → 12px
+    height: 36px → 12px
+△ Alert info
+    height: 84px → 82px
+    height: 84px → 82px
+△ Alert · заголовок
+    fontWeight: 700 → 600
+    lineHeight: 22px → 20px
+    height: 22px → 20px
+    height: 22px → 20px
+△ Alert · текст
+    lineHeight: 22px → 18px
+    height: 16px → 18px
+    height: 16px → 18px
+△ Upload zone
+    height: 78px → 76px
+    height: 78px → 76px
+△ File item
+    height: 70px → 66px
+    height: 70px → 66px
+△ File · плитка
+    lineHeight: 22px → 10px
+△ Bank row
+    height: 133px → 131px
+    height: 133px → 131px
+✓ Bank · название
+△ Bank · программа
+    lineHeight: 22px → 18px
+    height: 22px → 18px
+    height: 22px → 18px
+△ Metric · значение
+    lineHeight: 22px → 28px
+    height: 26px → 28px
+    height: 26px → 28px
+△ Metric · подпись
+    lineHeight: 22px → 18px
+    height: 22px → 18px
+    height: 22px → 18px
+△ Side card (Выбранные банки)
+    height: 254px → 252px
+    height: 254px → 252px
+✓ Side card · заголовок
+✓ Picked · банк
+△ Step current
+    fontWeight: 600 → 400
+    color: rgb(12, 42, 208) → rgb(26, 26, 26)
+△ Step · номер (закрыт)
+    lineHeight: 22px → 18px
+    borderTopLeftRadius: 999px → 3.35544e+07px
+△ Help card
+    height: 244px → 236px
+    height: 244px → 236px
+△ Bottom bar
+    boxShadow: rgba(16, 36, 94, 0.08) 0px -6px 20px 0px → none
+✓ Header
+△ Header · логотип
+    lineHeight: 22px → 30px
+    height: 22px → 30px
+    height: 22px → 30px
+△ Header · организация
+    fontWeight: 700 → 600
+    lineHeight: 22px → 18px
+    height: 22px → 18px
+    columnGap: normal → 4px
+    height: 22px → 18px
+△ Flow head · H1
+    fontSize: 24px → 14px
+    lineHeight: 32px → 22px
+    color: rgb(26, 26, 26) → rgb(46, 52, 56)
+    backgroundColor: rgba(0, 0, 0, 0) → rgb(247, 247, 247)
+    paddingRight: 0px → 25px
+    height: 32px → 0px
+    height: 32px → 0px
+△ Flow head · назад
+    lineHeight: 22px → 20px
+    height: 22px → 20px
+    height: 22px → 20px
+△ LineTab active
+    columnGap: normal → 8px
+△ TextTab active
+    lineHeight: 22px → 18px
+    columnGap: normal → 6px
+△ Search
+    backgroundColor: rgba(0, 0, 0, 0) → rgb(255, 255, 255)
+△ Card (основная)
+    paddingTop: 24px → 32px
+    paddingRight: 24px → 32px
+    paddingBottom: 24px → 32px
+    paddingLeft: 24px → 32px
+    height: 206px → 544px
+    height: 206px → 544px
+✓ Card · H2
+△ Participant
+    height: 104px → 106px
+    height: 104px → 106px
+✓ Participant · имя
+△ Stepper · кнопка
+    borderTopLeftRadius: 50% → 3.35544e+07px
+✓ Summary row
+✓ Summary · пояснение
+△ Deals · th
+    fontWeight: 400 → 700
+    lineHeight: normal → 20px
+    color: rgba(26, 26, 26, 0.65) → rgb(26, 26, 26)
+    paddingTop: 12px → 10px
+    paddingRight: 12px → 15px
+    paddingBottom: 12px → 10px
+    paddingLeft: 12px → 20px
+    height: 42px → 0px
+    height: 42px → 0px
+△ Deals · td
+    fontSize: 14px → 13px
+    lineHeight: 22px → 20px
+    backgroundColor: rgba(0, 0, 0, 0) → rgb(255, 255, 255)
+    paddingTop: 16px → 10px
+    paddingRight: 12px → 15px
+    paddingBottom: 16px → 10px
+    paddingLeft: 12px → 15px
+    height: 73px → 0px
+    height: 73px → 0px
+✓ Segmented tabs
+✓ Segmented · активная
+△ Bank pick (выбран)
+    height: 153px → 145px
+    height: 153px → 145px
+△ Mail
+    height: 682px → 646px
+    height: 682px → 646px

@@ -40,9 +40,9 @@ export function Alert({ type = 'info', title, children, onClose, action, classNa
   return (
     <div role={urgent ? 'alert' : 'status'} className={cn(alertVariants({ type }), className)} {...rest}>
       <Icon name={ICONS[type]} size={20} className="shrink-0" />
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="m-0 text-[13px] leading-5 font-semibold">{title}</p>
-        {children && <div className="text-caption text-text-secondary">{children}</div>}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <p className="m-0 text-[13px] leading-[22px] font-bold">{title}</p>
+        {children && <div className="text-caption leading-[22px] text-text-secondary">{children}</div>}
         {action && <div className="mt-2">{action}</div>}
       </div>
       {onClose && (

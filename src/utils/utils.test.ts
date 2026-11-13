@@ -34,9 +34,11 @@ describe('validators', () => {
     for (const fn of Object.values(validate)) expect((fn as (v: string) => string)('')).not.toMatch(/\.$/);
   });
   it('errorSummary как в плашке футера', () => {
-    expect(errorSummary(['Организация'])).toBe('Заполните поле «Организация»');
-    expect(errorSummary(['СНИЛС', 'Электронная почта'])).toBe('Проверьте поля «СНИЛС» и «Электронная почта»');
-    expect(errorSummary(['A', 'B', 'C', 'D'])).toBe('Проверьте поля «A», «B», «C» и ещё 1');
+    expect(errorSummary(['org'])).toBe('Заполните поле «Организация». Остальное уже сохранено');
+    expect(errorSummary(['snils', 'email'])).toBe('Проверьте поля «СНИЛС» и «Электронная почта». Остальное уже сохранено');
+    expect(errorSummary(['fio', 'snils', 'email', 'inn'])).toBe('Проверьте поля «ФИО», «СНИЛС», «Электронная почта» и ещё 1. Остальное уже сохранено');
+    expect(errorSummary(['org', 'x1'])).toBe('Проверьте поля «Организация» и ещё 1. Остальное уже сохранено');
+    expect(errorSummary(['x1', 'x2'])).toBe('Проверьте поля, отмеченные красным: 2 поля требуют внимания. Остальное уже сохранено');
   });
   it('collectErrors отдаёт первое поле по порядку', () => {
     expect(collectErrors({ fio: '', phone: 'x', email: 'y' }).first).toBe('phone');

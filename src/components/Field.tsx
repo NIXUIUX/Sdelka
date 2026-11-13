@@ -39,7 +39,7 @@ export function FieldLabel({ htmlFor, id, floating, disabled, rightInset, classN
         floating
           ? cn('absolute top-1/2 left-4 -translate-y-1/2 text-body-l', rightInset ? 'right-12' : 'right-4')
           : 'text-caption',
-        disabled ? 'text-text-disabled' : 'text-text-muted',
+        'text-text-muted',
         className,
       )}
     >
@@ -60,7 +60,7 @@ export function FieldError({ id, children }: { id?: string; children: ReactNode 
 
 /** Подсказка под полем. При ошибке вместо неё показывается FieldError. */
 export function FieldHelper({ id, disabled, children }: { id?: string; disabled?: boolean; children: ReactNode }) {
-  return <p id={id} className={cn('mt-1.5 text-caption', disabled ? 'text-text-disabled' : 'text-text-secondary')}>{children}</p>;
+  return <p id={id} data-disabled={disabled || undefined} className="mt-1.5 text-caption text-text-secondary">{children}</p>;
 }
 
 /** Низ поля: ошибка или подсказка. Возвращает id для aria-describedby. */

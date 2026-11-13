@@ -17,8 +17,8 @@ export function Metric({ label, value, tone = 'default', size = 'l', className }
 }) {
   return (
     <div className={cn('flex min-w-0 flex-col', className)}>
-      <span className="text-caption text-text-secondary">{label}</span>
-      <b className={cn('tabular-nums', size === 'l' ? 'text-[20px] leading-7 font-bold' : 'text-[18px] leading-[26px] font-semibold', {
+      <span className="text-caption leading-[22px] text-text-secondary">{label}</span>
+      <b className={cn('tabular-nums', size === 'l' ? 'text-[20px] leading-[26px] font-bold' : 'text-[18px] leading-[26px] font-semibold', {
         default: 'text-text-primary', accent: 'text-action-primary', success: 'text-success', muted: 'text-text-muted',
       }[tone])}>{value}</b>
     </div>
@@ -80,7 +80,7 @@ export function BankRow({ bank, program, rate, payment, income, selected, onTogg
               </span>
             )}
           </div>
-          <small className="block text-caption text-text-secondary">{program}</small>
+          <small className="block text-caption leading-[22px] text-text-secondary">{program}</small>
         </div>
       </div>
       <div className={cn('row-span-2 flex flex-col items-end justify-between gap-3 max-[720px]:row-span-1 max-[720px]:flex-row-reverse max-[720px]:items-center',
@@ -162,8 +162,8 @@ export function PickedBanks({ banks, program, amount, onRemove, notice, title = 
             <li key={b.bank} className="flex items-center gap-3 rounded-12 p-2">
               <Avatar name={b.bank} size={36} />
               <div className="min-w-0 flex-1">
-                <b className="block truncate text-body-m font-semibold text-text-primary">{b.bank}</b>
-                <small className="block truncate text-caption text-text-secondary tabular-nums">{b.meta}</small>
+                <b className="block truncate text-body-m leading-[22px] font-semibold text-text-primary">{b.bank}</b>
+                <small className="block truncate text-caption leading-[22px] text-text-secondary tabular-nums">{b.meta}</small>
               </div>
               {b.locked ? (
                 <span className="grid size-8 shrink-0 place-items-center text-text-muted" title="Анкета уже отправлена в банк — убрать нельзя">

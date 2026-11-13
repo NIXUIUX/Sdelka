@@ -34,7 +34,7 @@ const matchesAccept = (f: File, accept?: string) => {
  * Клик или перетаскивание файла. States: Default, Hover (и drag-over) — синяя рамка, Error — красная.
  */
 export function UploadZone({
-  title, limits = 'PDF, JPG или PNG до 10 МБ', error, onFiles, multiple, accept = '.pdf,.jpg,.jpeg,.png',
+  title, limits = 'PDF, JPEG, PNG до 10 МБ', error, onFiles, multiple, accept = '.pdf,.jpg,.jpeg,.png',
   maxSizeMb = 10, onReject, actionLabel = 'Выбрать файл', disabled, className,
 }: UploadZoneProps) {
   const input = useRef<HTMLInputElement>(null);
@@ -71,9 +71,9 @@ export function UploadZone({
         <span className="grid size-10 shrink-0 place-items-center rounded-12 bg-surface-white text-action-primary">
           <Icon name="upload" size={20} />
         </span>
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex min-w-0 flex-1 flex-col">
           <span className="text-body-m font-semibold text-text-primary">{title}</span>
-          <span id={`${id}-hint`} role={error ? 'alert' : undefined} className={cn('text-caption', error ? 'text-error' : 'text-text-secondary')}>
+          <span id={`${id}-hint`} role={error ? 'alert' : undefined} className={cn('text-caption leading-[22px]', error ? 'text-error' : 'text-text-secondary')}>
             {error && error !== true ? error : limits}
           </span>
         </span>
@@ -123,9 +123,9 @@ export function FileItem({ name, meta, ok = true, onRemove, loading, className }
       <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-10 bg-surface-card text-[10px] leading-none font-bold text-action-primary">
         {ext || <Icon name="file" size={18} />}
       </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span title={name} className="truncate text-body-m-medium text-text-primary">{name}</span>
-        {meta && <span className="truncate text-caption text-text-secondary">{meta}</span>}
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span title={name} className="truncate text-body-m-medium leading-[22px] text-text-primary">{name}</span>
+        {meta && <span className="truncate text-caption leading-[22px] text-text-secondary">{meta}</span>}
       </span>
       {loading ? (
         <Spinner size={18} label="Загружаем файл" className="shrink-0" />

@@ -1,0 +1,127 @@
+△ Button primary M
+    lineHeight: 22px → 20px
+△ Button outline M
+    lineHeight: 22px → 20px
+△ Button outline S
+    lineHeight: 22px → 18px
+△ Button sm «Прескоринг»
+    lineHeight: 22px → 20px
+△ Link «Изменить»
+    lineHeight: 22px → 18px
+    height: 22px → 18px
+    columnGap: normal → 8px
+    height: 22px → 18px
+△ Ghost-link «Сброс фильтров»
+    lineHeight: 22px → 18px
+    columnGap: 6px → 8px
+△ Field (заполнено)
+    color: rgba(26, 26, 26, 0.65) → rgb(26, 26, 26)
+    backgroundColor: rgb(248, 250, 254) → rgb(255, 255, 255)
+✓ Field · подпись
+△ Field · значение
+    color: rgba(26, 26, 26, 0.65) → rgb(26, 26, 26)
+✓ Field · подсказка
+✓ Select
+✓ Select · значение
+△ Checkbox
+    color: rgb(26, 26, 26) → rgb(255, 255, 255)
+✓ Checkbox · подпись
+✓ Switch · дорожка
+✓ Switch · подпись
+✓ Switch · пояснение
+△ Chip active
+    fontSize: 13px → 14px
+△ Chip · подпись
+    lineHeight: 22px → 18px
+    height: 22px → 18px
+    height: 22px → 18px
+△ Badge accent
+    lineHeight: 22px → 18px
+△ Avatar
+    lineHeight: 22px → 18px
+✓ Alert info
+✓ Alert · заголовок
+△ Alert · текст
+    height: 16px → 22px
+    height: 16px → 22px
+✓ Upload zone
+✓ File item
+△ File · плитка
+    lineHeight: 22px → 10px
+△ Bank row
+    height: 133px → 137px
+    height: 133px → 137px
+✓ Bank · название
+✓ Bank · программа
+△ Metric · значение
+    lineHeight: 22px → 26px
+✓ Metric · подпись
+△ Side card (Выбранные банки)
+    height: 254px → 260px
+    height: 254px → 260px
+✓ Side card · заголовок
+✓ Picked · банк
+△ Step current
+    fontWeight: 600 → 400
+    color: rgb(12, 42, 208) → rgb(26, 26, 26)
+△ Step · номер (закрыт)
+    lineHeight: 22px → 18px
+    borderTopLeftRadius: 999px → 3.35544e+07px
+✓ Help card
+△ Bottom bar
+    boxShadow: rgba(16, 36, 94, 0.08) 0px -6px 20px 0px → none
+✓ Header
+△ Header · логотип
+    lineHeight: 22px → 30px
+    height: 22px → 30px
+    height: 22px → 30px
+△ Header · организация
+    lineHeight: 22px → 18px
+    height: 22px → 18px
+    columnGap: normal → 4px
+    height: 22px → 18px
+✓ Flow head · H1
+△ Flow head · назад
+    lineHeight: 22px → 20px
+    height: 22px → 20px
+    height: 22px → 20px
+△ LineTab active
+    columnGap: normal → 8px
+△ TextTab active
+    lineHeight: 22px → 18px
+    columnGap: normal → 6px
+△ Search
+    backgroundColor: rgba(0, 0, 0, 0) → rgb(255, 255, 255)
+✓ Card (участники)
+✓ Card · H2
+△ Card анкеты (pad32)
+    height: 1554px → 974px
+    height: 1554px → 974px
+✓ Заголовок раздела (h1.sec)
+△ Inset (место работы)
+    height: 390px → 286px
+    height: 390px → 286px
+✓ Upload · иконка-плитка
+△ Signer (участник подписания)
+    height: 288px → 592px
+    height: 288px → 592px
+△ Participant
+    height: 104px → 106px
+    height: 104px → 106px
+✓ Participant · имя
+△ Stepper · кнопка
+    borderTopLeftRadius: 50% → 3.35544e+07px
+✓ Summary row
+✓ Summary · пояснение
+△ Deals · th
+    lineHeight: normal → 19.5px
+    height: 42px → 45px
+    height: 42px → 45px
+△ Deals · td
+    backgroundColor: rgba(0, 0, 0, 0) → rgb(255, 255, 255)
+✓ Segmented tabs
+✓ Segmented · активная
+✓ Bank pick (выбран)
+△ Mail
+    height: 682px → 674px
+    height: 682px → 674px

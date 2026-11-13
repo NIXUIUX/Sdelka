@@ -39,7 +39,7 @@ export function RadioGroup<V extends string = string>({
           const oid = `${groupName}-${o.value}`;
           return (
             <div key={o.value} className="flex flex-col">
-              <label htmlFor={oid} className={cn('group/rd inline-flex min-h-7 items-start gap-3 self-start', off ? 'cursor-not-allowed' : 'cursor-pointer')}>
+              <label htmlFor={oid} className={cn('group/rd inline-flex min-h-[22px] items-start gap-2.5 self-start', off ? 'cursor-not-allowed' : 'cursor-pointer')}>
                 <input
                   id={oid}
                   type="radio"
@@ -54,7 +54,7 @@ export function RadioGroup<V extends string = string>({
                 <span
                   aria-hidden
                   className={cn(
-                    'mt-1 grid size-5 shrink-0 place-items-center rounded-full border-[1.5px] bg-surface-white transition-[border-color] duration-150',
+                    'mt-px grid size-5 shrink-0 place-items-center rounded-full border-[1.5px] bg-surface-white transition-[border-color] duration-150',
                     'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-action-primary',
                     off
                       ? cn('border-border-default bg-chart-track-soft', on && 'border-chart-track')
@@ -67,9 +67,9 @@ export function RadioGroup<V extends string = string>({
                 >
                   {on && <span className={cn('size-2.5 rounded-full', off ? 'bg-chart-track' : 'bg-action-primary group-hover/rd:bg-action-hover')} />}
                 </span>
-                <span className={cn('py-0.75 text-body-m', off ? 'text-text-disabled' : 'text-text-primary')}>{o.label}</span>
+                <span className={cn('text-body-m', off ? 'text-text-disabled' : 'text-text-primary')}>{o.label}</span>
               </label>
-              {o.helper && <p id={`${oid}-help`} className="mt-0.5 ml-8 text-caption text-text-secondary">{o.helper}</p>}
+              {o.helper && <p id={`${oid}-help`} className="mt-0.5 ml-[30px] text-caption text-text-secondary">{o.helper}</p>}
             </div>
           );
         })}

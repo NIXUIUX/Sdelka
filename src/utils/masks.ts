@@ -66,5 +66,5 @@ export const maskInputMode: Partial<Record<MaskName, 'tel' | 'numeric' | 'email'
 
 /** Длина полностью введённого значения */
 export const maskLength: Partial<Record<MaskName, number>> = {
-  phone: 18, date: 10, snils: 14, passport: 11, passportSeries: 5, passportNumber: 6, divisionCode: 7, inn10: 10, inn12: 12, year: 4,
+  phone: 18, date: 10, snils: 14, passport: 11, passportSeries: 5, passportNumber: 6, divisionCode: 7, inn10: 10, inn12: 12, year: 4, years: 2, months: 2, email: 80, name: 100, text: 200,
 };

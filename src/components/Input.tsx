@@ -77,13 +77,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
               onChange?.(next);
             }}
             className={cn(
-              'w-full min-w-0 bg-transparent pt-0.5 text-body-l leading-[22px] text-text-primary outline-none placeholder:text-text-muted disabled:cursor-not-allowed disabled:text-text-disabled',
+              'w-full min-w-0 bg-transparent pt-1 text-body-l leading-[22px] text-text-primary outline-none placeholder:text-text-muted disabled:cursor-not-allowed disabled:text-text-secondary',
               floating && 'placeholder:text-transparent',
             )}
             {...rest}
           />
           {suffix && (
-            <span className={cn('shrink-0 text-body-l', disabled ? 'text-text-disabled' : 'text-text-secondary', floating && 'opacity-0')}>
+            <span className={cn('shrink-0 text-body-l', 'text-text-secondary', floating && 'opacity-0')}>
               {suffix}
             </span>
           )}

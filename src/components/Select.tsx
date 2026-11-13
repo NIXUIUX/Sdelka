@@ -103,22 +103,22 @@ export function Select<V extends string = string>({
         onKeyDown={onKey}
         className={cn(
           fieldBox({ size, state }),
-          'cursor-pointer pr-12 outline-none disabled:cursor-not-allowed',
+          'cursor-pointer pr-10 outline-none disabled:cursor-not-allowed',
           open && state === 'default' && 'border-action-primary shadow-[inset_0_0_0_1px_var(--color-action-primary)] hover:border-action-primary',
           state === 'default' && 'focus-visible:border-action-primary focus-visible:shadow-[inset_0_0_0_1px_var(--color-action-primary)]',
         )}
       >
-        <span id={`${baseId}-lab`} className={cn('block truncate text-caption', disabled ? 'text-text-disabled' : 'text-text-muted')}>{label}</span>
+        <span id={`${baseId}-lab`} className="block truncate text-caption text-text-muted">{label}</span>
         <span
           id={`${baseId}-val`}
-          className={cn('block truncate pt-0.5 text-body-l leading-[22px]', disabled ? 'text-text-disabled' : current ? 'text-text-primary' : 'text-text-muted')}
+          className={cn('block truncate pt-0.5 text-body-l leading-[22px]', disabled ? 'text-text-secondary' : current ? 'text-text-primary' : 'text-text-muted')}
         >
           {current ? current.label : placeholder}
         </span>
         <Icon
           name={open ? 'chevron-up' : 'chevron-down'}
           size={18}
-          className={cn('absolute top-1/2 right-4 -translate-y-1/2', disabled ? 'text-text-disabled' : 'text-text-secondary')}
+          className="absolute top-1/2 right-3 -translate-y-1/2 text-text-secondary"
         />
       </button>
       <FieldFoot baseId={baseId} error={error} helper={helper} disabled={disabled} />

@@ -8,3 +8,7 @@ export {
   StatusBankCard, ConditionsBox, InfoHero, MailItem, BankReply, MailCompose, DealRow, DealsTable, BANK_STATUS, DEAL_STATUS_TONE,
   type BankStatus, type StatusBankCardProps, type MailItemProps, type MailComposeProps, type Deal, type DealRowProps, type DealsTableProps,
 } from './Status';
+export {
+  ParticipantsCard, TermEdit, BankFacts, BankLimits, IconList, SignerHeader, DocBox, SignaturePad, PackageCard, Recommendation,
+  ClientHeader, ClientHero, BrokerContact, DocsIllustration,
+} from './Extra';
