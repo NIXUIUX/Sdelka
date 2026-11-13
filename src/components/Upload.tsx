@@ -63,7 +63,7 @@ export function UploadZone({
         onDragLeave={() => setDrag(false)}
         onDrop={(e) => { e.preventDefault(); setDrag(false); take(e.dataTransfer.files); }}
         className={cn(
-          'flex w-full items-center gap-3 rounded-16 border border-dashed bg-surface-card py-4 pr-5 pl-4 text-left transition-colors duration-150',
+          'flex w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-16 border border-dashed bg-surface-card py-4 pr-5 pl-4 text-left transition-colors duration-150',
           'disabled:cursor-not-allowed disabled:opacity-60',
           error ? 'border-error' : drag ? 'border-action-primary' : 'border-chart-track hover:enabled:border-action-primary',
         )}
@@ -71,13 +71,13 @@ export function UploadZone({
         <span className="grid size-10 shrink-0 place-items-center rounded-12 bg-surface-white text-action-primary">
           <Icon name="upload" size={20} />
         </span>
-        <span className="flex min-w-0 flex-1 flex-col">
+        <span className="flex min-w-0 flex-1 basis-[150px] flex-col">
           <span className="text-body-m font-semibold text-text-primary">{title}</span>
           <span id={`${id}-hint`} role={error ? 'alert' : undefined} className={cn('text-caption leading-[22px]', error ? 'text-error' : 'text-text-secondary')}>
             {error && error !== true ? error : limits}
           </span>
         </span>
-        <span className="shrink-0 text-button-s whitespace-nowrap text-action-primary">{actionLabel}</span>
+        <span className="shrink-0 text-button-s whitespace-nowrap text-action-primary max-[400px]:pl-[52px]">{actionLabel}</span>
       </button>
       <input
         ref={input}
@@ -123,7 +123,7 @@ export function FileItem({ name, meta, ok = true, onRemove, loading, className }
       <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-10 bg-surface-card text-[10px] leading-none font-bold text-action-primary">
         {ext || <Icon name="file" size={18} />}
       </span>
-      <span className="flex min-w-0 flex-1 flex-col">
+      <span className="flex min-w-0 flex-1 basis-[150px] flex-col">
         <span title={name} className="truncate text-body-m-medium leading-[22px] text-text-primary">{name}</span>
         {meta && <span className="truncate text-caption leading-[22px] text-text-secondary">{meta}</span>}
       </span>
