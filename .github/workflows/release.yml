@@ -19,7 +19,8 @@ jobs:
       - run: npm ci
       - name: Версия в теге совпадает с package.json
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
-      - run: npm publish
+      # provenance работает только из публичного репозитория
+      - run: npm publish ${{ github.event.repository.private == false && '--provenance' || '' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Релиз на GitHub с текстом из CHANGELOG

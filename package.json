@@ -10,8 +10,7 @@
   },
   "homepage": "https://nixuiux.github.io/Sdelka/",
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "sideEffects": [
     "**/*.css"
