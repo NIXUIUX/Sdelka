@@ -13,7 +13,7 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
   /** Красная рамка — не отмечено обязательное согласие */
   error?: boolean;
   /**
-   * Закреплено: серая галочка, изменить нельзя. Так в подборе отмечены банки, куда заявка уже отправлена.
+   * Закреплено: светло-голубой квадрат с белой галочкой, изменить нельзя. Так в подборе отмечены банки, куда заявка уже отправлена.
    * Отличается от disabled тем, что значение видно и оно «отправлено».
    */
   locked?: boolean;
@@ -64,7 +64,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
             indeterminate && 'border-action-primary bg-action-primary group-hover/cb:border-action-hover group-hover/cb:bg-action-hover',
             error && 'border-error group-hover/cb:border-error',
             disabled && 'border-border-default bg-chart-track-soft group-hover/cb:border-border-default peer-checked:border-chart-track peer-checked:bg-chart-track peer-checked:group-hover/cb:border-chart-track peer-checked:group-hover/cb:bg-chart-track',
-            locked && 'border-text-muted bg-text-muted group-hover/cb:border-text-muted peer-checked:border-text-muted peer-checked:bg-text-muted peer-checked:group-hover/cb:border-text-muted peer-checked:group-hover/cb:bg-text-muted',
+            locked && 'border-chart-track-soft bg-chart-track-soft group-hover/cb:border-chart-track-soft peer-checked:border-chart-track-soft peer-checked:bg-chart-track-soft peer-checked:group-hover/cb:border-chart-track-soft peer-checked:group-hover/cb:bg-chart-track-soft',
           )}
         >
           {indeterminate ? (

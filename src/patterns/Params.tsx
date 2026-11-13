@@ -90,13 +90,15 @@ export interface ApprovedParamsProps {
    */
   values?: ApprovedValues;
   onSave?: (v: ApprovedValues) => void;
+  /** Открыть сразу в режиме правки (для историй и тестов) */
+  defaultEditing?: boolean;
   title?: ReactNode;
   className?: string;
 }
 
 /** Параметры одобрения банка: зелёный блок, сетка 3 × 2 (2 колонки на телефоне), значения 18/600, ставка зелёным */
-export function ApprovedParams({ items, note, onEdit, values, onSave, title = 'Параметры одобрения', className }: ApprovedParamsProps) {
-  const [edit, setEdit] = useState(false);
+export function ApprovedParams({ items, note, onEdit, values, onSave, defaultEditing = false, title = 'Параметры одобрения', className }: ApprovedParamsProps) {
+  const [edit, setEdit] = useState(defaultEditing && !!(values && onSave));
   const [d, setD] = useState({ sum: values?.sum ?? null as number | null, rate: String(values?.rate ?? '').replace('.', ','), term: String(values?.term ?? '') });
   const editable = !!(values && onSave);
   const start = () => {

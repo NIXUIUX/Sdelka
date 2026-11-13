@@ -10,5 +10,6 @@ export {
 } from './Status';
 export {
   ParticipantsCard, TermEdit, BankFacts, BankLimits, IconList, SignerHeader, DocBox, SignaturePad, PackageCard, Recommendation,
-  ClientHeader, ClientHero, BrokerContact, DocsIllustration,
+  ClientHeader, ClientHero, BrokerContact, DocsIllustration, HouseIllustration, MailPreview, OfferLetter,
+  type DocsIllustrationState, type OfferLetterProps,
 } from './Extra';

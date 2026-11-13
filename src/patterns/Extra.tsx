@@ -258,10 +258,24 @@ export function BrokerContact({ name, company, phone }: { name: string; company:
   );
 }
 
-/** Иллюстрация героя клиента (svg.ill из прототипа): листы документов + круг со стрелкой; sent — зелёный круг с галочкой */
-export function DocsIllustration({ sent = false }: { sent?: boolean }) {
+export type DocsIllustrationState = 'upload' | 'sent' | 'waiting';
+const DOCS_BADGE: Record<DocsIllustrationState, { fill: string; mark: ReactNode }> = {
+  upload: { fill: '#0c2ad0', mark: <path d="M168 144v-22M159 130l9-9 9 9" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" /> },
+  sent: { fill: '#26795d', mark: <path d="M157 132l8 8 15-16" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" /> },
+  waiting: {
+    fill: '#8a93a8',
+    mark: <><circle cx="168" cy="132" r="12" stroke="#fff" strokeWidth="3.5" /><path d="M168 125v7l5 3" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" /></>,
+  },
+};
+
+/**
+ * Иллюстрация героя клиента (svg.ill из прототипа; Figma: «Иллюстрация / Документы»): стопка листов и значок состояния.
+ * upload — синяя стрелка (загрузите, передам позже), sent — зелёная галочка (документы у брокера), waiting — серые часы (ссылка устарела).
+ */
+export function DocsIllustration({ sent = false, state, width = 200 }: { /** @deprecated используйте state="sent" */ sent?: boolean; state?: DocsIllustrationState; width?: number }) {
+  const b = DOCS_BADGE[state ?? (sent ? 'sent' : 'upload')];
   return (
-    <svg width="200" height="160" viewBox="0 0 220 176" fill="none" aria-hidden="true">
+    <svg width={width} height={(width * 176) / 220} viewBox="0 0 220 176" fill="none" aria-hidden="true">
       <circle cx="112" cy="90" r="78" fill="#fff" fillOpacity=".7" />
       <rect x="44" y="40" width="96" height="120" rx="12" transform="rotate(-8 44 40)" fill="#fff" stroke="#c3d3f7" strokeWidth="2" />
       <rect x="72" y="30" width="96" height="120" rx="12" fill="#fff" stroke="#c3d3f7" strokeWidth="2" />
@@ -269,10 +283,145 @@ export function DocsIllustration({ sent = false }: { sent?: boolean }) {
       <rect x="88" y="68" width="64" height="6" rx="3" fill="#d6e4f5" />
       <rect x="88" y="82" width="56" height="6" rx="3" fill="#d6e4f5" />
       <rect x="88" y="96" width="62" height="6" rx="3" fill="#d6e4f5" />
-      <circle cx="168" cy="132" r="26" fill={sent ? '#26795d' : '#0c2ad0'} />
-      {sent
-        ? <path d="M157 132l8 8 15-16" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-        : <path d="M168 144v-22M159 130l9-9 9 9" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />}
+      <circle cx="168" cy="132" r="26" fill={b.fill} />
+      {b.mark}
     </svg>
+  );
+}
+
+/** Иллюстрация письма с предложением (HOUSE_ART из прототипа; Figma: «Иллюстрация / Дом»): дом, ключ и монета ₽ */
+export function HouseIllustration({ width = 168, className }: { width?: number; className?: string }) {
+  return (
+    <svg width={width} height={(width * 150) / 200} viewBox="0 0 200 150" fill="none" aria-hidden="true" className={cn('shrink-0', className)}>
+      <ellipse cx="100" cy="136" rx="84" ry="9" fill="#c3d3f7" opacity=".55" />
+      <circle cx="150" cy="38" r="26" fill="#fff" />
+      <path d="M46 70 100 28l54 42" stroke="#0c2ad0" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M58 66v66h84V66L100 36Z" fill="#fff" stroke="#0c2ad0" strokeWidth="3" strokeLinejoin="round" />
+      <rect x="88" y="94" width="24" height="38" rx="4" fill="#0c2ad0" />
+      <circle cx="106" cy="114" r="2" fill="#fff" />
+      <rect x="68" y="78" width="16" height="16" rx="3" fill="#c3d3f7" /><rect x="116" y="78" width="16" height="16" rx="3" fill="#c3d3f7" />
+      <rect x="124" y="34" width="10" height="22" rx="2" fill="#0c2ad0" />
+      <g transform="rotate(-28 160 104)">
+        <circle cx="160" cy="104" r="11" stroke="#4e68de" strokeWidth="5" />
+        <path d="M171 104h22M187 104v8M181 104v6" stroke="#4e68de" strokeWidth="5" strokeLinecap="round" />
+      </g>
+      <circle cx="36" cy="112" r="16" fill="#0c2ad0" />
+      <path d="M33 121V103h6a5 5 0 0 1 0 10h-9M30 117h9" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M30 40v10M25 45h10M178 74v8M174 78h8" stroke="#4e68de" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/* ───────────── Письмо клиенту с предложением ───────────── */
+
+/** Превью письма в окне «Предложение для клиента» (.mail-prev): «Так письмо увидит клиент», Кому, Тема и холст с письмом */
+export function MailPreview({ to, subject, caption = 'Так письмо увидит клиент', children, className }: {
+  to: ReactNode; subject: ReactNode; caption?: ReactNode; children: ReactNode; className?: string;
+}) {
+  return (
+    <section className={cn('overflow-hidden rounded-20 border border-border-default', className)}>
+      <div className="flex flex-col gap-1.5 bg-surface-white px-5 py-4">
+        <span className="mb-0.5 text-caption tracking-[.04em] text-text-muted uppercase">{caption}</span>
+        {[['Кому', to], ['Тема', subject]].map(([k, v], i) => (
+          <div key={i} className="flex min-w-0 gap-3 text-[13px]">
+            <span className="w-11 shrink-0 text-text-secondary">{k}</span>
+            <b className="truncate font-medium">{v}</b>
+          </div>
+        ))}
+      </div>
+      <div className="bg-surface-page px-4 py-6">{children}</div>
+    </section>
+  );
+}
+
+export interface OfferLetterProps {
+  /** Имя клиента для обращения: «Иван» → «Иван, мы подобрали…». Пусто — «Мы подобрали…» */
+  firstName?: string;
+  /** «Заявка № BD2A6E33 · 14.11.2026» */
+  requestLabel: ReactNode;
+  /** «Стандартная ипотека · г. Москва» */
+  program: ReactNode;
+  /** Стоимость, Взнос, Кредит, Срок */
+  params: readonly { label: ReactNode; value: ReactNode }[];
+  banks: readonly { bank: string; rate: string; payment: string; income: string }[];
+  docs?: readonly { title: ReactNode; description: ReactNode }[];
+  manager: { name: string; company: ReactNode; phone: string; email: string; hours: ReactNode };
+  ctaLabel?: ReactNode;
+  onCta?: () => void;
+  className?: string;
+}
+
+const DEFAULT_DOCS = [
+  { title: 'Паспорт РФ', description: 'Разворот с фото и страница с регистрацией' },
+  { title: 'СНИЛС', description: 'Лицевая сторона' },
+];
+
+/** Письмо клиенту с предварительным расчётом (.letter из прототипа): шапка, герой с домом, параметры, банки, документы, кнопка, менеджер, сноска */
+export function OfferLetter({
+  firstName, requestLabel, program, params, banks, docs = DEFAULT_DOCS, manager, ctaLabel = 'Загрузить документы', onCta, className,
+}: OfferLetterProps) {
+  return (
+    <article className={cn('mx-auto flex max-w-[560px] flex-col gap-5 rounded-20 border border-border-default bg-surface-white p-7 max-[640px]:p-5', className)}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-[18px] font-bold text-action-primary">сделка.рф</span>
+        <small className="text-caption text-text-secondary">{requestLabel}</small>
+      </div>
+      <div className="flex items-center gap-4 rounded-16 bg-surface-card p-6 max-[640px]:flex-col-reverse max-[640px]:items-start">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <h3 className="m-0 text-[22px] leading-7 font-semibold text-balance">{firstName ? `${firstName}, мы` : 'Мы'} подобрали для вас ипотеку</h3>
+          <p className="m-0 text-body-m text-text-secondary">
+            {program}. Предварительный расчёт по {banks.length} {plural(banks.length, 'банку', 'банкам', 'банкам')}. Чтобы брокер заполнил анкету и отправил её в банки, загрузите документы
+          </p>
+        </div>
+        <HouseIllustration width={168} className="max-[640px]:w-[140px]" />
+      </div>
+      <div className="grid grid-cols-4 gap-3 max-[640px]:grid-cols-2">
+        {params.map((p, i) => (
+          <div key={i}><span className="block text-caption text-text-secondary">{p.label}</span><b className="text-h4 whitespace-nowrap">{p.value}</b></div>
+        ))}
+      </div>
+      <div className="flex flex-col gap-2">
+        {banks.map((b) => (
+          <div key={b.bank} className="flex items-center gap-3 rounded-16 border border-border-default px-4 py-3.5">
+            <Avatar name={b.bank} size={36} />
+            <div className="flex min-w-0 flex-1 flex-col"><b className="text-h4">{b.bank}</b><small className="text-caption text-text-secondary">Доход от {b.income}</small></div>
+            <div className="flex flex-col text-right"><b className="text-num-m text-action-primary">{b.rate}*</b><small className="text-caption text-text-secondary">{b.payment} / мес*</small></div>
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-col gap-3">
+        <h4 className="m-0 text-body-l font-semibold">Необходимые документы для заполнения ипотечной анкеты</h4>
+        <ul className="m-0 flex list-none flex-col gap-2 p-0">
+          {docs.map((d, i) => (
+            <li key={i} className="flex items-center gap-3 rounded-16 bg-surface-card px-4 py-3">
+              <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-10 bg-surface-white text-action-primary"><Icon name="file" size={16} /></span>
+              <div><b className="block text-body-m font-semibold">{d.title}</b><small className="block text-caption text-text-secondary">{d.description}</small></div>
+            </li>
+          ))}
+        </ul>
+        <p className="m-0 text-body-m text-text-secondary">Анкету заполнять не нужно — это сделает ваш брокер по загруженным документам</p>
+      </div>
+      <div className="flex flex-col items-center gap-2 py-1">
+        <Button className="min-w-[220px]" onClick={onCta}>{ctaLabel}</Button>
+        <small className="text-center text-caption text-text-muted">Откроется страница на сайте сделка.рф · ссылка действует 14 дней</small>
+      </div>
+      <div className="flex flex-col gap-3.5 rounded-16 border border-border-default p-5">
+        <div className="flex items-center gap-3">
+          <Avatar name={manager.name} size={36} />
+          <div>
+            <small className="block text-caption text-text-secondary">Ваш персональный менеджер</small>
+            <b className="block text-h4">{manager.name}</b>
+            <small className="block text-caption text-text-secondary">Ипотечный брокер · {manager.company}</small>
+          </div>
+        </div>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 gap-y-2">
+          {([['phone', manager.phone], ['mail', manager.email], ['clock', manager.hours]] as const).map(([ic, v]) => (
+            <div key={ic} className="flex min-w-0 items-center gap-2 text-[13px]"><Icon name={ic} size={16} className="shrink-0 text-action-primary" /><span className="truncate">{v}</span></div>
+          ))}
+        </div>
+        <p className="m-0 text-[13px] text-text-secondary">Ответим на вопросы по условиям банков и поможем с документами</p>
+      </div>
+      <p className="m-0 text-caption-xs text-text-muted">* Предварительный расчёт, не является публичной офертой. Окончательные условия определяет банк после рассмотрения анкеты</p>
+    </article>
   );
 }
