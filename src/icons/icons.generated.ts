@@ -9,6 +9,7 @@ export const iconPaths = {
   "chevron-left": "M15 18l-6-6 6-6",
   "chevron-right": "M9 18l6-6-6-6",
   "chevron-up": "M18 15l-6-6-6 6",
+  "circle-check": "M9 12l2 2 4-4M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0",
   "clock": "M12 6v6l4 2M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0",
   "download": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
   "file": "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6",
@@ -23,6 +24,7 @@ export const iconPaths = {
   "search": "M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
   "send": "M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z",
   "sliders": "M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",
+  "triangle-alert": "M21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3zM12 9v4M12 17h.01",
   "upload": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12",
   "x": "M18 6L6 18M6 6l12 12"
 } as const;
