@@ -1,0 +1,19 @@
+/* Точка входа стилей библиотеки: import '@sdelka/ui/styles.css' */
+@import "tailwindcss";
+@import "./theme.css";
+
+@source "../";
+
+@layer base {
+  html { color-scheme: light; }
+  body {
+    background: var(--color-surface-page);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 22px;
+  }
+  /* Фокус только с клавиатуры (правило прототипа) */
+  :focus-visible { outline: 2px solid var(--color-action-primary); outline-offset: 2px; }
+  :focus:not(:focus-visible) { outline: none; }
+}

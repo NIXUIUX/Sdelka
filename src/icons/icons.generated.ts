@@ -1,0 +1,30 @@
+// Сгенерировано scripts/build-icons.mjs из icons/icons.json — не редактировать вручную
+export const iconPaths = {
+  "alert-circle": "M12 8v4M12 16h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0",
+  "archive": "M3 4h18v4H3zM5 8v11c0 1 1 2 2 2h10c1 0 2-1 2-2V8M10 12h4",
+  "archive-restore": "M3 4h18v4H3zM5 8v11c0 1 1 2 2 2h10c1 0 2-1 2-2V8M12 18v-7M9 14l3-3 3 3",
+  "badge-check": "M9 12l2 2 4-4M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0",
+  "check": "M20 6L9 17l-5-5",
+  "chevron-down": "M6 9l6 6 6-6",
+  "chevron-left": "M15 18l-6-6 6-6",
+  "chevron-right": "M9 18l6-6-6-6",
+  "chevron-up": "M18 15l-6-6-6 6",
+  "clock": "M12 6v6l4 2M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0",
+  "download": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
+  "file": "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6",
+  "gauge": "M12 14l4-4M3.34 19a10 10 0 1 1 17.32 0",
+  "info": "M12 16v-4M12 8h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0",
+  "lock": "M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4",
+  "menu": "M3 6h18M3 12h18M3 18h18",
+  "message": "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  "minus": "M5 12h14",
+  "plus": "M12 5v14M5 12h14",
+  "refresh": "M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15",
+  "search": "M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
+  "send": "M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z",
+  "sliders": "M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",
+  "upload": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12",
+  "x": "M18 6L6 18M6 6l12 12"
+} as const;
+
+export type IconName = keyof typeof iconPaths;

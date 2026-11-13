@@ -1,0 +1,59 @@
+/* Сгенерировано scripts/build-tokens.mjs из tokens/figma-tokens.json — не редактировать вручную */
+@theme {
+  --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --spacing: 4px;
+  --color-action-primary: #0c2ad0;
+  --color-action-hover: #0a22aa;
+  --color-primary-disabled: #d6e4f5;
+  --color-surface-white: #ffffff;
+  --color-surface-page: #f8fafe;
+  --color-surface-card: #eef6fe;
+  --color-surface-hover-soft: #dce9fc;
+  --color-border-default: #e0e0e0;
+  --color-border-blue: #c3d3f7;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #1a1a1aa6;
+  --color-text-muted: #1a1a1a8c;
+  --color-text-disabled: #1a1a1a6b;
+  --color-error: #c34455;
+  --color-error-bg: #fcedf0;
+  --color-success: #26795d;
+  --color-success-bg: #ecf6f1;
+  --color-warning-text: #946319;
+  --color-warning-bg: #fcf5e7;
+  --color-chart-track: #c3d3f7;
+  --color-chart-track-soft: #d6e4f5;
+  --color-chart-medium: #4e68de;
+  --color-chart-light: #a9bcf5;
+  --color-rating-low: #e8a0aa;
+  --color-rating-mid: #f0d39a;
+  --color-rating-high: #9fd3bd;
+  --color-rating-top: #7f97ea;
+  --color-overlay: #0c2ad052;
+  --radius-6: 6px;
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-14: 14px;
+  --radius-16: 16px;
+  --radius-20: 20px;
+  --radius-28: 28px;
+  --radius-999: 999px;
+  --shadow-pop: 0 16px 40px #0d1a4d29;
+  --shadow-footer: 0 -6px 20px #10245e14;
+}
+
+/* Текстовые стили Figma как утилиты: class="text-h1", "text-body-m" … */
+@utility text-h1 { font-family: var(--font-sans); font-size: 24px; line-height: 32px; font-weight: 600; }
+@utility text-h2 { font-family: var(--font-sans); font-size: 18px; line-height: 26px; font-weight: 600; }
+@utility text-h3 { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 600; }
+@utility text-overline { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+@utility text-body-l { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 400; }
+@utility text-body-m { font-family: var(--font-sans); font-size: 14px; line-height: 22px; font-weight: 400; }
+@utility text-body-m-medium { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 500; }
+@utility text-body-s { font-family: var(--font-sans); font-size: 13px; line-height: 18px; font-weight: 400; }
+@utility text-caption { font-family: var(--font-sans); font-size: 12px; line-height: 18px; font-weight: 400; }
+@utility text-caption-medium { font-family: var(--font-sans); font-size: 12px; line-height: 18px; font-weight: 500; }
+@utility text-button-m { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 600; }
+@utility text-button-s { font-family: var(--font-sans); font-size: 13px; line-height: 18px; font-weight: 600; }
+@utility text-num-l { font-family: var(--font-sans); font-size: 22px; line-height: 30px; font-weight: 600; font-variant-numeric: tabular-nums; }
+@utility text-num-xl { font-family: var(--font-sans); font-size: 40px; line-height: 44px; font-weight: 600; font-variant-numeric: tabular-nums; }
