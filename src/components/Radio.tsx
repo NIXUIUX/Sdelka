@@ -22,7 +22,7 @@ export interface RadioGroupProps<V extends string = string> {
 /**
  * Радиокнопки — выбор одного из нескольких видимых вариантов.
  * Визуально продолжают Checkbox (20 px, рамка 1.5, те же состояния), но круглые.
- * ⚠️ В Figma «Мягко» компонента Radio пока нет — нарисован по правилам Checkbox, нужно добавить в библиотеку.
+ * В Figma отдельного компонента нет — решено оставить только в коде (13.11.2026).
  */
 export function RadioGroup<V extends string = string>({
   label, options, value, onChange, error, disabled, inline, name, className,

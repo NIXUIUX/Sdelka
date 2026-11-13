@@ -11,3 +11,6 @@ export { Checkbox, type CheckboxProps } from './Checkbox';
 export { Switch, type SwitchProps } from './Switch';
 export { RadioGroup, type RadioGroupProps, type RadioOption } from './Radio';
 export { StepperField, MiniStepper, type StepperFieldProps, type MiniStepperProps } from './Stepper';
+export { LineTabs, TextTabs, type TabItem } from './Tabs';
+export { Chip, type ChipProps } from './Chip';
+export { Popover, Menu, FilterPanel, FilterChip, type PopoverProps, type MenuProps, type FilterPanelProps, type FilterChipProps } from './Popover';

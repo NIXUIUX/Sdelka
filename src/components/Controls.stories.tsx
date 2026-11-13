@@ -64,7 +64,7 @@ export const Радио: S = {
     const [a, setA] = useState<string | null>('married');
     const [b, setB] = useState<string | null>(null);
     return (
-      <Card title="Radio" hint="⚠️ В Figma «Мягко» компонента Radio нет — собран по правилам Checkbox. Нужно добавить в библиотеку." cols="grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+      <Card title="Radio" hint="Выбор одного из видимых вариантов. Есть только в коде — визуально продолжает Checkbox: круг 20, рамка 1.5." cols="grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
         <RadioGroup label="Семейное положение *" value={a} onChange={setA} options={[
           { value: 'single', label: 'Не в браке' }, { value: 'married', label: 'В браке' },
           { value: 'contract', label: 'В браке, есть брачный договор', helper: 'Понадобится скан договора' },
