@@ -101,7 +101,7 @@ export function Participant({ name, index, role, status, statusTone = 'neutral',
       {name ? <Avatar name={name} size={36} className={cn(current && 'bg-surface-white')} />
         : <Avatar text={String(index ?? 1)} size={36} className={cn(current && 'bg-surface-white')} />}
       <div className="flex min-w-0 flex-1 flex-col">
-        <b className="truncate text-[15px] leading-[22px] font-semibold text-text-primary">{name || 'Новый участник'}</b>
+        <b className="truncate text-h4 text-text-primary">{name || 'Новый участник'}</b>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <small className="text-[12px] text-text-secondary">{role}</small>
           <Badge tone={statusTone} className={cn('h-[22px] text-[12px]', current && 'bg-surface-white')}>{status}</Badge>
@@ -159,7 +159,7 @@ export function ScoreCard({ score, name, role, className }: ScoreCardProps) {
       </div>
       <div className="flex min-w-0 flex-1 flex-col items-start gap-2.5">
         <div className="flex flex-wrap items-baseline gap-x-2">
-          <b className="text-[15px] leading-[22px] font-semibold text-text-primary">{name}</b>
+          <b className="text-h4 text-text-primary">{name}</b>
           {role && <span className="text-[12px] text-text-secondary">{role}</span>}
         </div>
         <ScoreBadge score={score} suffix="рейтинг" />
@@ -179,7 +179,7 @@ export function ScoreCard({ score, name, role, className }: ScoreCardProps) {
             style={{ left: pos(Math.min(Math.max(score, 1), SCORE_MAX)) }}
           />
         </div>
-        <div className="relative h-4 w-full text-[11px] leading-4 text-text-secondary">
+        <div className="relative h-4 w-full text-caption-xs text-text-secondary">
           {ticks.map((t, i) => (
             // 861 на узком экране наезжает на «979 · 999» — прячем, граница видна по цвету шкалы
             <span key={t} className={cn('absolute top-0', i === 2 && 'max-[520px]:hidden')} style={{ left: pos(t), transform: i === 0 ? 'none' : 'translateX(-50%)' }}>{t}</span>
@@ -207,7 +207,7 @@ export function SignalTile({ label, value, state = 'ok', className }: SignalTile
   const warn = state === 'warning';
   return (
     <div className={cn('flex min-w-0 flex-col gap-0.5 rounded-10 px-2.5 py-2', warn ? 'bg-warning-bg' : 'bg-surface-page', className)}>
-      <span className="truncate text-[11px] leading-4 text-text-secondary">{label}</span>
+      <span className="truncate text-caption-xs text-text-secondary">{label}</span>
       <span className={cn('flex items-center gap-1 text-[13px] leading-[18px] font-medium', warn ? 'text-warning-text' : 'text-text-primary')}>
         <Icon name={warn ? 'info' : 'check'} size={12} className={cn('shrink-0', !warn && 'text-success')} />
         <span className="min-w-0 truncate">{value}</span>

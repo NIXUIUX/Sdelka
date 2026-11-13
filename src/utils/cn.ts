@@ -5,7 +5,7 @@ import { extendTailwindMerge } from 'tailwind-merge';
 const twMerge = extendTailwindMerge({
   extend: {
     classGroups: {
-      'font-size': [{ text: ['h1', 'h2', 'h3', 'overline', 'body-l', 'body-m', 'body-m-medium', 'body-s', 'caption', 'caption-medium', 'button-m', 'button-s', 'num-l', 'num-xl'] }],
+      'font-size': [{ text: ['h1', 'h2', 'h3', 'overline', 'body-l', 'body-m', 'body-m-medium', 'body-s', 'caption', 'caption-medium', 'button-m', 'button-s', 'num-l', 'num-xl', 'h4', 'body-s-relaxed', 'caption-xs', 'num-m'] }],
     },
   },
 });

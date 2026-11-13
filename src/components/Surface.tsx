@@ -107,8 +107,8 @@ export function NumberedStep({ n, title, description, action }: { n: number; tit
     <div className="flex flex-wrap items-center gap-3">
       <span className="grid size-7 shrink-0 place-items-center rounded-full border border-chart-track text-[12px] text-action-primary">{n}</span>
       <div className="min-w-0 flex-1">
-        <b className="block text-[15px] leading-[22px] font-semibold text-text-primary">{title}</b>
-        {description && <small className="text-[13px] leading-[22px] text-text-secondary">{description}</small>}
+        <b className="block text-h4 text-text-primary">{title}</b>
+        {description && <small className="text-body-s-relaxed text-text-secondary">{description}</small>}
       </div>
       {action}
     </div>

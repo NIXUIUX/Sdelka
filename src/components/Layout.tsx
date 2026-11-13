@@ -268,7 +268,7 @@ export function HelpCard({ title = 'Помощь по ипотеке', children 
       <section className="flex flex-col items-start gap-4 rounded-20 border border-border-default bg-surface-card p-6">
         <span className="grid size-10 place-items-center rounded-12 bg-surface-white text-action-primary"><Icon name={icon} size={20} /></span>
         <h2 className="m-0 text-h2 text-text-primary">{title}</h2>
-        <p className="m-0 text-[13px] leading-[22px] text-text-secondary">{children}</p>
+        <p className="m-0 text-body-s-relaxed text-text-secondary">{children}</p>
         {action}
       </section>
       {footer && <p className="m-0 px-6 text-body-s text-text-secondary">{footer}</p>}

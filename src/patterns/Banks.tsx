@@ -18,7 +18,7 @@ export function Metric({ label, value, tone = 'default', size = 'l', className }
   return (
     <div className={cn('flex min-w-0 flex-col', className)}>
       <span className="text-caption leading-[22px] text-text-secondary">{label}</span>
-      <b className={cn('tabular-nums', size === 'l' ? 'text-[20px] leading-[26px] font-bold' : 'text-[18px] leading-[26px] font-semibold', {
+      <b className={cn('tabular-nums', size === 'l' ? 'text-num-m' : 'text-[18px] leading-[26px] font-semibold', {
         default: 'text-text-primary', accent: 'text-action-primary', success: 'text-success', muted: 'text-text-muted',
       }[tone])}>{value}</b>
     </div>
@@ -73,7 +73,7 @@ export function BankRow({ bank, program, rate, payment, income, selected, onTogg
         <Avatar name={bank} size={36} />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <b className="text-[15px] leading-[22px] font-semibold text-text-primary">{bank}</b>
+            <b className="text-h4 text-text-primary">{bank}</b>
             {sent && (
               <span className="inline-flex h-[22px] items-center gap-1.5 rounded-999 border border-border-default bg-surface-white px-2 text-[11px] whitespace-nowrap text-text-secondary">
                 <Icon name="send" size={12} />{sent.label ?? 'Отправлено'} · {sent.at}

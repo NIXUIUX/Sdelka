@@ -57,3 +57,7 @@
 @utility text-button-s { font-family: var(--font-sans); font-size: 13px; line-height: 18px; font-weight: 600; }
 @utility text-num-l { font-family: var(--font-sans); font-size: 22px; line-height: 30px; font-weight: 600; font-variant-numeric: tabular-nums; }
 @utility text-num-xl { font-family: var(--font-sans); font-size: 40px; line-height: 44px; font-weight: 600; font-variant-numeric: tabular-nums; }
+@utility text-h4 { font-family: var(--font-sans); font-size: 15px; line-height: 22px; font-weight: 600; }
+@utility text-body-s-relaxed { font-family: var(--font-sans); font-size: 13px; line-height: 22px; font-weight: 400; }
+@utility text-caption-xs { font-family: var(--font-sans); font-size: 11px; line-height: 16px; font-weight: 400; }
+@utility text-num-m { font-family: var(--font-sans); font-size: 20px; line-height: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }

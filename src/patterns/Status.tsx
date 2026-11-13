@@ -66,7 +66,7 @@ export function StatusBankCard({ bank, status, meta, params, selected, onSelect,
           <b className="min-w-0 flex-1 truncate text-[17px] leading-6 font-semibold text-text-primary">{bank}</b>
           <Badge tone={st.tone}>{st.label}</Badge>
         </span>
-        {meta && <span className="text-[13px] leading-[22px] text-text-secondary">{meta}</span>}
+        {meta && <span className="text-body-s-relaxed text-text-secondary">{meta}</span>}
       </button>
       {params && params.length > 0 && (
         <>
@@ -76,7 +76,7 @@ export function StatusBankCard({ bank, status, meta, params, selected, onSelect,
             <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} />
           </button>
           {open && (
-            <dl id={bodyId} className="mt-1 grid grid-cols-[1fr_auto] gap-x-3 gap-y-2 text-[13px] leading-[22px] tabular-nums">
+            <dl id={bodyId} className="mt-1 grid grid-cols-[1fr_auto] gap-x-3 gap-y-2 text-body-s-relaxed tabular-nums">
               {params.map((p, i) => (
                 <div key={i} className="contents">
                   <dt className="text-text-secondary">{p.label}</dt>
@@ -188,7 +188,7 @@ export function MailItem({
       ) : <div className="flex items-center gap-3">{head}</div>}
       {open && (
         <div id={bodyId} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3 rounded-12 border border-border-default bg-surface-white p-5 text-[13px] leading-[22px] text-text-primary">
+          <div className="flex flex-col gap-3 rounded-12 border border-border-default bg-surface-white p-5 text-body-s-relaxed text-text-primary">
             {to && <p className="m-0 break-words"><b className="font-semibold">Получатели:</b> {to}</p>}
             {subject && <p className="m-0"><b className="font-semibold">Тема:</b> {subject}</p>}
             {notice}

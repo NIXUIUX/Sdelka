@@ -18,6 +18,7 @@ const slug = (n) =>
     'Body/L': 'body-l', 'Body/M': 'body-m', 'Body/M Medium': 'body-m-medium', 'Body/S': 'body-s',
     'Caption/Regular': 'caption', 'Caption/Medium': 'caption-medium',
     'Button/M': 'button-m', 'Button/S': 'button-s', 'Numeric/L': 'num-l', 'Numeric/XL': 'num-xl',
+    'Heading/H4': 'h4', 'Body/S Relaxed': 'body-s-relaxed', 'Caption/XS': 'caption-xs', 'Numeric/M': 'num-m',
   })[n];
 const textRule = (t) =>
   [

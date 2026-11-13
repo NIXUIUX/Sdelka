@@ -310,6 +310,34 @@ export const textStyles = {
     "size": 40,
     "lineHeight": 44,
     "className": "text-num-xl"
+  },
+  "h4": {
+    "name": "Heading/H4",
+    "weight": 600,
+    "size": 15,
+    "lineHeight": 22,
+    "className": "text-h4"
+  },
+  "body-s-relaxed": {
+    "name": "Body/S Relaxed",
+    "weight": 400,
+    "size": 13,
+    "lineHeight": 22,
+    "className": "text-body-s-relaxed"
+  },
+  "caption-xs": {
+    "name": "Caption/XS",
+    "weight": 400,
+    "size": 11,
+    "lineHeight": 16,
+    "className": "text-caption-xs"
+  },
+  "num-m": {
+    "name": "Numeric/M",
+    "weight": 700,
+    "size": 20,
+    "lineHeight": 26,
+    "className": "text-num-m"
   }
 } as const;
 
