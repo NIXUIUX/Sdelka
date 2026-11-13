@@ -1,0 +1,31 @@
+name: Release
+# Публикует пакет в npm (публично) при пуше тега vX.Y.Z (см. scripts/release.mjs)
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+  id-token: write   # provenance: npm показывает, что пакет собран из этого репозитория
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - name: Версия в теге совпадает с package.json
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Релиз на GitHub с текстом из CHANGELOG
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          awk -v v="## $V" '$0 ~ "^## " {p = ($0 ~ "^"v)} p' CHANGELOG.md | tail -n +2 > notes.md
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md
