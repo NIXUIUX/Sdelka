@@ -27,8 +27,8 @@ export const fieldBox = cva(
 export type FieldSize = 's' | 'm' | 'l';
 
 /** Подпись поля. `floating` — пустое поле без фокуса: подпись крупно по центру, как плейсхолдер. */
-export function FieldLabel({ htmlFor, id, floating, disabled, rightInset, children }: {
-  htmlFor?: string; id?: string; floating?: boolean; disabled?: boolean; rightInset?: boolean; children: ReactNode;
+export function FieldLabel({ htmlFor, id, floating, disabled, rightInset, className, children }: {
+  htmlFor?: string; id?: string; floating?: boolean; disabled?: boolean; rightInset?: boolean; className?: string; children: ReactNode;
 }) {
   return (
     <label
@@ -40,6 +40,7 @@ export function FieldLabel({ htmlFor, id, floating, disabled, rightInset, childr
           ? cn('absolute top-1/2 left-4 -translate-y-1/2 text-body-l', rightInset ? 'right-12' : 'right-4')
           : 'text-caption',
         disabled ? 'text-text-disabled' : 'text-text-muted',
+        className,
       )}
     >
       {children}

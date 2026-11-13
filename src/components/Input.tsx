@@ -57,7 +57,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           inner_ref.current?.focus();
         }}
       >
-        <FieldLabel htmlFor={inputId} floating={floating} disabled={disabled} rightInset={!!suffix}>{label}</FieldLabel>
+        <FieldLabel htmlFor={inputId} floating={floating} disabled={disabled} rightInset={!!suffix} className={endSlot && floating ? 'right-28' : undefined}>{label}</FieldLabel>
         <div className="flex items-center gap-2">
           <input
             ref={inner_ref}
