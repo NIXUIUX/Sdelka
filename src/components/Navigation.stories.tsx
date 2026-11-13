@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { LineTabs, TextTabs } from './Tabs';
+import { LineTabs, TextTabs, SegmentedTabs, ChoiceGroup } from './Tabs';
 import { Chip } from './Chip';
 import { FilterChip, FilterPanel, Menu } from './Popover';
 import { MoneyField } from './MoneyField';
@@ -25,8 +25,10 @@ export const Вкладки: S = {
   render: () => {
     const [a, setA] = useState('deals');
     const [b, setB] = useState('params');
+    const [c, setC] = useState('project');
+    const [k, setK] = useState<number | null>(2);
     return (
-      <Card title="Вкладки" hint="Стрелки ← → переключают вкладки с клавиатуры. LineTab — разделы страницы, TextTab — вид внутри блока.">
+      <Card title="Вкладки" hint="Стрелки ← → переключают вкладки. LineTab — разделы страницы, TextTab — фильтр списка, SegmentedTabs и ChoiceGroup — из прототипа.">
         <div><Cap>LineTab</Cap>
           <LineTabs aria-label="Разделы" value={a} onChange={setA} items={[
             { value: 'deals', label: 'Ипотечные заявки', count: 12 }, { value: 'archive', label: 'Архив', count: 3 }, { value: 'clients', label: 'Клиенты' },
@@ -34,8 +36,16 @@ export const Вкладки: S = {
         </div>
         <div><Cap>TextTab</Cap>
           <TextTabs aria-label="Вид" value={b} onChange={setB} items={[
-            { value: 'params', label: 'По параметрам' }, { value: 'banks', label: 'По банкам' }, { value: 'off', label: 'Скоро', disabled: true },
+            { value: 'all', label: 'Все' }, { value: 'params', label: 'По параметрам' }, { value: 'sel', label: 'Выбрано: 2' },
           ]} />
+        </div>
+        <div><Cap>SegmentedTabs — окно ДОМ.РФ, подписание</Cap>
+          <SegmentedTabs aria-label="Условия" value={c} onChange={setC} items={[
+            { value: 'project', label: 'Проектное финансирование' }, { value: 'cut', label: 'Снижение ставки' },
+          ]} />
+        </div>
+        <div className="max-w-[320px]"><Cap>ChoiceGroup — количество детей</Cap>
+          <ChoiceGroup aria-label="Количество детей" value={k} onChange={setK} options={[1, 2, 3, 4, 5].map((n) => ({ value: n, label: n === 5 ? '5+' : n }))} />
         </div>
       </Card>
     );

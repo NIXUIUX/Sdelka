@@ -52,9 +52,17 @@ export const ВсеСостояния: S = {
         <Button variant="link" iconRight="chevron-right">Изменить параметры подбора</Button>
         <Button variant="link" disabled>Вернуть</Button>
       </Row>
-      <Row title="Размеры s / m / l">
+      <Row title="subtle">
+        <Button variant="subtle" icon="rotate-ccw">Сброс фильтров</Button>
+      </Row>
+      <Row title="Переключатель">
+        <Button variant="outline" size="s" icon="sliders">Фильтры</Button>
+        <Button variant="outline" size="s" icon="sliders" pressed count={3}>Фильтры</Button>
+      </Row>
+      <Row title="Размеры s / sm / m / l">
         <Button size="s" variant="outline">Подробнее</Button>
-        <Button size="m" variant="outline" icon="gauge">Прескоринг</Button>
+        <Button size="sm" variant="outline" icon="gauge">Прескоринг</Button>
+        <Button size="m" variant="outline">Отправить предложение на почту</Button>
         <Button size="l">Отправить в банки</Button>
       </Row>
     </Card>

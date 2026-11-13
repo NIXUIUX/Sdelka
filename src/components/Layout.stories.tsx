@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { AppHeader, FlowHead, StepsNav, StepItem, BottomBar, HelpCard, Container } from './Layout';
+import { AppHeader, FlowHead, StepsNav, StepItem, BottomBar, HelpCard, Container, HSteps, Autosave } from './Layout';
 import { Button } from './Button';
 import { Alert } from './Alert';
 import { Input } from './Input';
@@ -18,7 +18,7 @@ type S = StoryObj;
 export const Шапка: S = {
   name: 'App header',
   render: () => (
-    <AppHeader user="Дмитрий Сорокин" org="ООО «Сделка.РФ»" onOrgClick={() => {}} actions={<AppHeader.IconButton icon="info" label="Справка" />} />
+    <AppHeader user="Дмитрий Сорокин" org="ООО «Сделка.РФ»" onOrgClick={() => {}} actions={<AppHeader.IconButton icon="help-circle" label="Справка" />} />
   ),
 };
 
@@ -34,7 +34,8 @@ export const Шаги: S = {
           <StepItem n={3} label="Персональные данные" state="locked" />
         </div>
         <StepsNav className="w-96" steps={STEPS} current={cur} done={['params', 'person'].filter((k) => k !== cur)} onStep={setCur} />
-        <HelpCard className="w-96" action={<Button variant="outline">Открыть чат</Button>} />
+        <HelpCard className="w-96" action={<Button variant="outline" size="s">Открыть чат</Button>} footer={<>Ответы на частые вопросы собрали <a className="font-semibold text-action-primary" href="#">здесь</a></>} />
+        <div className="w-full"><HSteps steps={STEPS} current={cur} done={['params']} onStep={setCur} /></div>
       </div>
     );
   },
@@ -58,10 +59,10 @@ export const Страница: S = {
     const [fam, setFam] = useState<string | null>(null);
     return (
       <div className="flex min-h-dvh flex-col bg-surface-page">
-        <AppHeader user="Дмитрий Сорокин" org="ООО «Сделка.РФ»" onOrgClick={() => {}} actions={<AppHeader.IconButton icon="info" label="Справка" />} />
+        <AppHeader user="Дмитрий Сорокин" org="ООО «Сделка.РФ»" onOrgClick={() => {}} actions={<AppHeader.IconButton icon="help-circle" label="Справка" />} />
         <main className="flex-1 py-8">
           <Container className="flex flex-col gap-6">
-            <FlowHead title="Заявка № 1009" meta="Шаг 2 из 5 · Персональные данные" action={<Button variant="outline" icon="gauge">Прескоринг</Button>} />
+            <FlowHead title="Заявка № 1009" meta="Шаг 2 из 5 · Персональные данные" action={<Button variant="outline" size="sm" icon="gauge">Прескоринг</Button>} />
             <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_384px]">
               <section className="flex flex-col gap-4 rounded-20 border border-border-default bg-surface-white p-8">
                 <h2 className="m-0 text-h2">Персональные данные</h2>
@@ -74,12 +75,12 @@ export const Страница: S = {
               </section>
               <aside className="flex flex-col gap-4 max-lg:-order-1">
                 <StepsNav steps={STEPS} current={cur} done={['params']} onStep={setCur} />
-                <HelpCard action={<Button variant="outline">Открыть чат</Button>} />
+                <HelpCard action={<Button variant="outline" size="s">Открыть чат</Button>} footer={<>Ответы на частые вопросы собрали <a className="font-semibold text-action-primary" href="#">здесь</a></>} />
               </aside>
             </div>
           </Container>
         </main>
-        <BottomBar left="Шаг 2 из 5 · Персональные данные" alert={<Alert type="warning" title="2 поля требуют внимания">Дата рождения, СНИЛС</Alert>}>
+        <BottomBar left={<Autosave />} alert={<Alert type="warning" title="2 поля требуют внимания">Дата рождения, СНИЛС</Alert>}>
           <Button variant="outline">Назад</Button><Button>Продолжить</Button>
         </BottomBar>
       </div>

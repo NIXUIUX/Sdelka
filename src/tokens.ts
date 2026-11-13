@@ -228,7 +228,7 @@ export const textStyles = {
   "h3": {
     "name": "Heading/H3",
     "weight": 600,
-    "size": 16,
+    "size": 17,
     "lineHeight": 24,
     "className": "text-h3"
   },

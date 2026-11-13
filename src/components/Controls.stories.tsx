@@ -45,7 +45,7 @@ export const Переключатели: S = {
     const [b, setB] = useState(true);
     const [c, setC] = useState(false);
     return (
-      <Card title="Switch" hint="Выключен — серая дорожка, при наведении голубая. Disabled включённый — полупрозрачный.">
+      <Card title="Switch" hint="Как в прототипе: выключен — светло-голубая дорожка, при наведении темнее; включён — синяя. Disabled — весь переключатель полупрозрачный.">
         <div><Cap>Default</Cap><Switch label="Уведомления" checked={a} onChange={setA} /></div>
         <div><Cap>Selected</Cap><Switch label="Уведомления" checked={b} onChange={setB} /></div>
         <div><Cap>Disabled</Cap><Switch label="Уведомления" checked={false} disabled /></div>

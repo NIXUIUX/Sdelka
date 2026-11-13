@@ -72,7 +72,7 @@ export function UploadZone({
           <Icon name="upload" size={20} />
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-body-m-medium text-text-primary">{title}</span>
+          <span className="text-body-m font-semibold text-text-primary">{title}</span>
           <span id={`${id}-hint`} role={error ? 'alert' : undefined} className={cn('text-caption', error ? 'text-error' : 'text-text-secondary')}>
             {error && error !== true ? error : limits}
           </span>
@@ -93,13 +93,15 @@ export function UploadZone({
 }
 
 export interface FileItemProps {
-  /** Имя файла — длинное обрезается многоточием */
+  /** Имя файла — длинное обрезается многоточием; из него берётся расширение для плитки */
   name: string;
-  /** Вторая строка: «1,2 МБ · загружен», «1,2 МБ · из прескоринга» или ФИО владельца (Read only) */
+  /** Вторая строка: «1,2 МБ · загружен», «1,2 МБ · из прескоринга» или ФИО владельца (только просмотр) */
   meta?: ReactNode;
-  /** Крестик удаления. Без него — Read only */
+  /** Зелёная галочка «файл принят». По умолчанию есть, кроме загрузки */
+  ok?: boolean;
+  /** Крестик удаления. Без него — только просмотр */
   onRemove?: () => void;
-  /** Загрузка — спиннер вместо крестика */
+  /** Загрузка — спиннер вместо галочки и крестика */
   loading?: boolean;
   className?: string;
 }
@@ -107,15 +109,19 @@ export interface FileItemProps {
 /** Размер в МБ с запятой: 1258291 → «1,2 МБ» */
 export const fileSize = (bytes: number) => `${(bytes / 1048576).toFixed(1).replace('.', ',')} МБ`;
 
+/** «Паспорт.jpg» → «JPG» (до 4 символов) */
+export const fileExt = (name: string) => (name.includes('.') ? name.split('.').pop()! : '').toUpperCase().slice(0, 4);
+
 /**
- * Загруженный файл — Figma: Мягко / File item (Default · From prescoring · Read only).
- * Рамка, радиус 14, плитка с иконкой файла 36.
+ * Загруженный файл — как в прототипе флоу Б: плитка с расширением («JPG», «PDF»), имя, вторая строка,
+ * зелёная галочка и крестик удаления. Рамка, радиус 14.
  */
-export function FileItem({ name, meta, onRemove, loading, className }: FileItemProps) {
+export function FileItem({ name, meta, ok = true, onRemove, loading, className }: FileItemProps) {
+  const ext = fileExt(name);
   return (
     <div className={cn('flex min-w-0 items-center gap-3 rounded-14 border border-border-default bg-surface-white px-4 py-3', className)}>
-      <span className="grid size-9 shrink-0 place-items-center rounded-10 bg-surface-card text-action-primary">
-        <Icon name="file" size={18} />
+      <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-10 bg-surface-card text-[10px] leading-none font-bold text-action-primary">
+        {ext || <Icon name="file" size={18} />}
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span title={name} className="truncate text-body-m-medium text-text-primary">{name}</span>
@@ -123,16 +129,21 @@ export function FileItem({ name, meta, onRemove, loading, className }: FileItemP
       </span>
       {loading ? (
         <Spinner size={18} label="Загружаем файл" className="shrink-0" />
-      ) : onRemove ? (
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={`Удалить ${name}`}
-          className="-m-1.5 grid size-7 shrink-0 place-items-center rounded-6 text-text-secondary transition-colors duration-150 hover:bg-surface-page hover:text-text-primary"
-        >
-          <Icon name="x" size={16} />
-        </button>
-      ) : null}
+      ) : (
+        <>
+          {ok && <Icon name="badge-check" size={18} label="Файл загружен" className="shrink-0 text-success" />}
+          {onRemove && (
+            <button
+              type="button"
+              onClick={onRemove}
+              aria-label={`Удалить ${name}`}
+              className="-m-1.5 grid size-7 shrink-0 place-items-center rounded-6 text-text-secondary transition-colors duration-150 hover:bg-surface-page hover:text-text-primary"
+            >
+              <Icon name="x" size={16} />
+            </button>
+          )}
+        </>
+      )}
     </div>
   );
 }

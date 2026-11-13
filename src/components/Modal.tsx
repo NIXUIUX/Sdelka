@@ -88,9 +88,9 @@ export function Modal({ open, onClose, title, subtitle, children, actions, size 
             type="button"
             onClick={onClose}
             aria-label="Закрыть"
-            className="grid size-10 shrink-0 place-items-center rounded-full border-[1.5px] border-border-blue text-action-primary transition-colors duration-150 hover:bg-surface-card"
+            className="grid size-9 shrink-0 place-items-center rounded-full border border-border-blue text-action-primary transition-colors duration-150 hover:bg-surface-card"
           >
-            <Icon name="x" size={20} />
+            <Icon name="x" size={18} />
           </button>
         </header>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-3">{children}</div>

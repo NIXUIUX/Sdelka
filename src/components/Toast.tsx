@@ -11,7 +11,7 @@ export function Toast({ children, className }: { children: ReactNode; className?
     <div
       role="status"
       className={cn(
-        'pointer-events-auto max-w-[calc(100vw-32px)] rounded-12 bg-text-primary px-4 py-3 text-body-m text-surface-white shadow-pop',
+        'pointer-events-auto max-w-[calc(100vw-32px)] rounded-12 bg-text-primary px-4 py-2.5 text-[13px] leading-5 text-surface-white shadow-pop',
         'animate-[toast-in_.18s_ease-out] motion-reduce:animate-none',
         className,
       )}

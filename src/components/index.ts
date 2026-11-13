@@ -11,14 +11,15 @@ export { Checkbox, type CheckboxProps } from './Checkbox';
 export { Switch, type SwitchProps } from './Switch';
 export { RadioGroup, type RadioGroupProps, type RadioOption } from './Radio';
 export { StepperField, MiniStepper, type StepperFieldProps, type MiniStepperProps } from './Stepper';
-export { LineTabs, TextTabs, type TabItem } from './Tabs';
+export { LineTabs, TextTabs, SegmentedTabs, ChoiceGroup, type TabItem, type ChoiceGroupProps } from './Tabs';
 export { Chip, type ChipProps } from './Chip';
 export { Popover, Menu, FilterPanel, FilterChip, type PopoverProps, type MenuProps, type FilterPanelProps, type FilterChipProps } from './Popover';
 export { Alert, type AlertProps, type AlertType } from './Alert';
 export { Toast, ToastProvider, useToast } from './Toast';
 export { Modal, type ModalProps } from './Modal';
-export { UploadZone, FileItem, fileSize, type UploadZoneProps, type FileItemProps } from './Upload';
+export { UploadZone, FileItem, fileSize, fileExt, type UploadZoneProps, type FileItemProps } from './Upload';
 export {
-  Container, AppHeader, FlowHead, StepItem, StepsNav, BottomBar, HelpCard, useStuck,
-  type AppHeaderProps, type FlowHeadProps, type StepItemProps, type StepState, type StepsNavProps, type BottomBarProps, type HelpCardProps,
+  Container, AppHeader, FlowHead, StepItem, StepsNav, BottomBar, HelpCard, HSteps, Autosave, useStuck,
+  type AppHeaderProps, type FlowHeadProps, type StepItemProps, type StepState, type StepsNavProps, type BottomBarProps, type HelpCardProps, type HStepsProps,
 } from './Layout';
+export { SearchField, type SearchFieldProps } from './SearchField';

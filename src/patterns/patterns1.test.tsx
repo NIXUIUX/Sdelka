@@ -11,7 +11,7 @@ it('BankRow: выбор и «Отправлено»', () => {
   expect(t).toHaveBeenCalledWith(true);
   expect(screen.getByText('18,95%')).toBeTruthy();
   t.mockClear();
-  rerender(<BankRow {...o} sentAt="сегодня, 10:50" onToggle={t} />);
+  rerender(<BankRow {...o} sent={{ at: 'сегодня, 10:50' }} onToggle={t} />);
   fireEvent.click(screen.getByLabelText(/уже отправлена/));
   expect(t).not.toHaveBeenCalled();
   expect(screen.getByText(/Отправлено · сегодня/)).toBeTruthy();
@@ -20,7 +20,7 @@ it('BankRow: выбор и «Отправлено»', () => {
 it('BankRow: Unfit без чекбокса и с причиной', () => {
   render(<BankRow {...o} unfitReason="Укажите срок до 15 лет" onDetails={() => {}} />);
   expect(screen.queryByRole('checkbox')).toBeNull();
-  expect(screen.queryByText('Подробнее')).toBeNull();
+  expect(screen.getByText('Подробнее').closest('[aria-hidden]')).toBeTruthy();
   expect(screen.getByText('Укажите срок до 15 лет')).toBeTruthy();
 });
 

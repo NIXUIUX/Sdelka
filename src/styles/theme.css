@@ -45,7 +45,7 @@
 /* Текстовые стили Figma как утилиты: class="text-h1", "text-body-m" … */
 @utility text-h1 { font-family: var(--font-sans); font-size: 24px; line-height: 32px; font-weight: 600; }
 @utility text-h2 { font-family: var(--font-sans); font-size: 18px; line-height: 26px; font-weight: 600; }
-@utility text-h3 { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 600; }
+@utility text-h3 { font-family: var(--font-sans); font-size: 17px; line-height: 24px; font-weight: 600; }
 @utility text-overline { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
 @utility text-body-l { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 400; }
 @utility text-body-m { font-family: var(--font-sans); font-size: 14px; line-height: 22px; font-weight: 400; }

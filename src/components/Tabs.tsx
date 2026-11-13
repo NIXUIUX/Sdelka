@@ -109,3 +109,57 @@ export function TextTabs<V extends string = string>({ items, value, onChange, pa
     </div>
   );
 }
+
+/**
+ * Переключатель-пилюля из прототипа (.segtabs): «Проектное финансирование / Снижение ставки» в окне ДОМ.РФ,
+ * способ подписания в Сбере. Голубая подложка с рамкой accent, выбранный — белый, синий, полужирный.
+ */
+export function SegmentedTabs<V extends string = string>({ items, value, onChange, panelId, className, ...aria }: TabsBase<V>) {
+  const { ref, onKeyDown } = useRoving(items, value, onChange);
+  return (
+    <div ref={ref} role="tablist" aria-label={aria['aria-label']} onKeyDown={onKeyDown}
+      className={cn('inline-flex max-w-full flex-wrap gap-1 self-start rounded-999 border border-border-blue bg-surface-card p-1', className)}>
+      {items.map((t) => {
+        const on = t.value === value;
+        return (
+          <button key={t.value} type="button" role="tab" data-value={t.value} aria-selected={on} aria-controls={panelId?.(t.value)}
+            tabIndex={on ? 0 : -1} disabled={t.disabled} onClick={() => onChange(t.value)}
+            className={cn('h-8 rounded-999 px-3.5 text-[13px] whitespace-nowrap transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50',
+              on ? 'bg-surface-white font-semibold text-action-primary' : 'text-text-secondary hover:enabled:bg-surface-white/60 hover:enabled:text-text-primary')}>
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export interface ChoiceGroupProps<V extends string | number> {
+  options: readonly { value: V; label: ReactNode }[];
+  value: V | null;
+  onChange: (v: V) => void;
+  'aria-label': string;
+  className?: string;
+}
+
+/**
+ * Ряд равных кнопок выбора из прототипа (.seg): «Количество детей 1 2 3 4 5+».
+ * Выбранная — голубой фон, синяя рамка 1.5, полужирный.
+ */
+export function ChoiceGroup<V extends string | number>({ options, value, onChange, className, ...aria }: ChoiceGroupProps<V>) {
+  return (
+    <div role="radiogroup" aria-label={aria['aria-label']} className={cn('grid gap-2', className)}
+      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+      {options.map((o) => {
+        const on = o.value === value;
+        return (
+          <button key={String(o.value)} type="button" role="radio" aria-checked={on} onClick={() => onChange(o.value)}
+            className={cn('h-9 rounded-10 border bg-surface-white text-body-m transition-colors duration-150',
+              on ? 'border-[1.5px] border-action-primary bg-surface-card font-semibold text-action-primary' : 'border-border-default hover:border-border-blue')}>
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}

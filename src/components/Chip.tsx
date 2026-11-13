@@ -43,7 +43,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       <span className={cn('min-w-0 truncate text-button-s', active || open ? 'text-action-primary' : 'text-text-primary')}>{value}</span>
       <Icon
         name="chevron-down"
-        size={16}
+        size={14}
         className={cn('shrink-0 transition-transform duration-150', open && 'rotate-180', active || open ? 'text-action-primary' : 'text-text-secondary')}
       />
     </button>

@@ -66,8 +66,7 @@ export function AppHeader({ section = 'Ипотека', org, onOrgClick, user, o
           {org && (
             <div className="flex flex-col items-end max-sm:hidden">
               <button type="button" onClick={onOrgClick} className="inline-flex items-center gap-1 text-button-s text-action-primary hover:text-action-hover">
-                {org}
-                {onOrgClick && <Icon name="chevron-down" size={14} />}
+                {org}{onOrgClick && <span aria-hidden> ▾</span>}
               </button>
               <span className="text-caption text-text-secondary">{user}</span>
             </div>
@@ -137,10 +136,11 @@ export interface StepItemProps {
 
 /**
  * Пункт шагов анкеты — Figma: Мягко / Step item. Высота 48, радиус 12.
- * Done — синий кружок с галочкой и шеврон, кликабелен. Current — голубой фон. Locked — серый, недоступен.
+ * По прототипу флоу Б: Done — синий кружок с галочкой и шеврон, кликабелен. Current — голубой фон, полужирный.
+ * Locked — серый кружок и текст, недоступен.
  */
 export function StepItem({ n, label, state, onClick }: StepItemProps) {
-  const base = 'flex h-12 w-full items-center gap-3 rounded-12 px-3 text-left';
+  const base = 'flex w-full items-center gap-3 rounded-14 px-3 py-2.5 text-left';
   const num = 'grid size-7 shrink-0 place-items-center rounded-full text-caption-medium';
   if (state === 'done') {
     return (
@@ -154,8 +154,8 @@ export function StepItem({ n, label, state, onClick }: StepItemProps) {
   const cur = state === 'current';
   return (
     <div aria-current={cur ? 'step' : undefined} aria-disabled={cur ? undefined : true} className={cn(base, cur && 'bg-surface-card')}>
-      <span className={cn(num, 'border bg-surface-white', cur ? 'border-border-blue text-action-primary' : 'border-border-default text-text-muted')}>{n}</span>
-      <span className={cn('min-w-0 flex-1 truncate', cur ? 'text-button-m text-action-primary' : 'text-body-m text-text-muted')}>{label}</span>
+      <span className={cn(num, cur ? 'border border-chart-track bg-surface-white text-action-primary' : 'bg-surface-page text-text-disabled')}>{n}</span>
+      <span className={cn('min-w-0 flex-1 truncate', cur ? 'text-button-m text-action-primary' : 'text-body-m text-text-disabled')}>{label}</span>
     </div>
   );
 }
@@ -173,7 +173,7 @@ export interface StepsNavProps {
 /** Боковая карточка шагов — Figma: Мягко / Steps nav. Белая, радиус 20, отступ 24 */
 export function StepsNav({ title = 'Шаги анкеты', steps, current, done, onStep, className }: StepsNavProps) {
   return (
-    <nav aria-label={typeof title === 'string' ? title : 'Шаги'} className={cn('flex flex-col gap-3 rounded-20 border border-border-default bg-surface-white p-6', className)}>
+    <nav aria-label={typeof title === 'string' ? title : 'Шаги'} className={cn('flex flex-col gap-4 rounded-20 border border-border-default bg-surface-white p-6', className)}>
       <h2 className="m-0 text-h2 text-text-primary">{title}</h2>
       <ol className="m-0 flex list-none flex-col gap-1 p-0">
         {steps.map((s, i) => {
@@ -236,7 +236,7 @@ export function BottomBar({ left, children, alert, narrow, stuck: forced }: Bott
         <div
           data-stuck={stuck || undefined}
           className={cn(
-            'flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border border-border-blue bg-surface-card p-6 transition-[border-radius,box-shadow,padding] duration-200',
+            'flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border border-border-default bg-surface-card p-6 transition-[border-radius,box-shadow,padding] duration-200',
             stuck ? 'rounded-t-20 rounded-b-none border-b-transparent pb-[calc(24px+env(safe-area-inset-bottom,0px))] shadow-footer' : 'rounded-20',
           )}
         >
@@ -251,6 +251,8 @@ export function BottomBar({ left, children, alert, narrow, stuck: forced }: Bott
 /* ───────────────────────── HelpCard ───────────────────────── */
 
 export interface HelpCardProps {
+  /** Строка под карточкой: «Ответы на частые вопросы собрали здесь» */
+  footer?: ReactNode;
   title?: ReactNode;
   children?: ReactNode;
   icon?: IconName;
@@ -260,13 +262,64 @@ export interface HelpCardProps {
 }
 
 /** Карточка помощи в боковой колонке — Figma: Мягко / Help card. Голубая, рамка accent, радиус 20 */
-export function HelpCard({ title = 'Помощь по ипотеке', children = 'Задайте вопрос и получите больше информации на консультации с нашим специалистом', icon = 'file', action, className }: HelpCardProps) {
+export function HelpCard({ title = 'Помощь по ипотеке', children = 'Задайте вопрос и получите больше информации на консультации с нашим специалистом', icon = 'folder', action, footer, className }: HelpCardProps) {
   return (
-    <section className={cn('flex flex-col items-start gap-3 rounded-20 border border-border-blue bg-surface-card p-6', className)}>
-      <span className="grid size-10 place-items-center rounded-12 bg-surface-white text-action-primary"><Icon name={icon} size={20} /></span>
-      <h2 className="m-0 text-h2 text-text-primary">{title}</h2>
-      <p className="m-0 text-body-s text-text-secondary">{children}</p>
-      {action}
-    </section>
+    <div className={cn('flex flex-col gap-4', className)}>
+      <section className="flex flex-col items-start gap-4 rounded-20 border border-border-default bg-surface-card p-6">
+        <span className="grid size-10 place-items-center rounded-12 bg-surface-white text-action-primary"><Icon name={icon} size={20} /></span>
+        <h2 className="m-0 text-h2 text-text-primary">{title}</h2>
+        <p className="m-0 text-body-s text-text-secondary">{children}</p>
+        {action}
+      </section>
+      {footer && <p className="m-0 px-6 text-body-s text-text-secondary">{footer}</p>}
+    </div>
+  );
+}
+
+/* ───────────── Горизонтальные шаги и автосохранение (прототип) ───────────── */
+
+export interface HStepsProps {
+  steps: readonly { key: string; label: ReactNode }[];
+  current: string;
+  done: readonly string[];
+  onStep?: (key: string) => void;
+  className?: string;
+}
+
+/** Шаги-пилюли под заголовком заявки (прототип: .hsteps). Пройденные кликабельны */
+export function HSteps({ steps, current, done, onStep, className }: HStepsProps) {
+  const pill = 'inline-flex h-9 items-center gap-2 rounded-999 border pr-3.5 pl-1.5 text-[13px] transition-colors duration-150';
+  const n = 'grid size-6 place-items-center rounded-full text-[12px] font-semibold';
+  return (
+    <ol className={cn('m-0 mt-1 flex list-none flex-wrap gap-2 p-0', className)}>
+      {steps.map((s, i) => {
+        const cur = s.key === current;
+        const d = !cur && done.includes(s.key);
+        return (
+          <li key={s.key}>
+            {d ? (
+              <button type="button" onClick={() => onStep?.(s.key)}
+                className={cn(pill, 'border-border-default bg-surface-white text-text-primary hover:border-border-blue hover:bg-surface-page')}>
+                <span className={cn(n, 'bg-action-primary text-surface-white')}><Icon name="check" size={12} strokeWidth={3} /></span>{s.label}
+              </button>
+            ) : (
+              <span aria-current={cur ? 'step' : undefined}
+                className={cn(pill, cur ? 'border-border-blue bg-surface-card font-semibold text-action-primary' : 'border-border-default bg-surface-white text-text-disabled')}>
+                <span className={cn(n, cur ? 'bg-action-primary text-surface-white' : 'bg-surface-page')}>{i + 1}</span>{s.label}
+              </span>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/** «Изменения сохраняются автоматически» — слева в футере анкеты (прототип: .autosave) */
+export function Autosave({ children = 'Изменения сохраняются автоматически' }: { children?: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-2 text-[13px] text-text-secondary">
+      <Icon name="check-check" size={16} className="text-success" />{children}
+    </span>
   );
 }

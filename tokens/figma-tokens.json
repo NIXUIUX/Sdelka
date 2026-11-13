@@ -52,7 +52,7 @@
   "text": [
     { "name": "Heading/H1", "weight": 600, "size": 24, "lineHeight": 32 },
     { "name": "Heading/H2", "weight": 600, "size": 18, "lineHeight": 26 },
-    { "name": "Heading/H3", "weight": 600, "size": 16, "lineHeight": 24 },
+    { "name": "Heading/H3", "weight": 600, "size": 17, "lineHeight": 24 },
     { "name": "Heading/Overline", "weight": 600, "size": 12, "lineHeight": 16, "upper": true, "letterSpacing": 4 },
     { "name": "Body/L", "weight": 400, "size": 16, "lineHeight": 24 },
     { "name": "Body/M", "weight": 400, "size": 14, "lineHeight": 22 },

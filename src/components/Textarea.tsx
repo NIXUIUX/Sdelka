@@ -35,7 +35,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy(taId, error, helper)}
           onChange={(e) => onChange?.(e.target.value)}
-          className="min-h-22 w-full resize-y bg-transparent pt-1 text-body-l text-text-primary outline-none placeholder:text-text-muted disabled:cursor-not-allowed disabled:text-text-disabled"
+          className="min-h-22 w-full resize-y bg-transparent pt-1 text-[15px] leading-[22px] text-text-primary outline-none placeholder:text-text-muted disabled:cursor-not-allowed disabled:text-text-disabled"
           {...rest}
         />
       </div>

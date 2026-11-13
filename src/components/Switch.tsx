@@ -11,7 +11,8 @@ export interface SwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
 
 /**
  * Переключатель — Figma: Мягко / Switch. Дорожка 40×24, бегунок 18.
- * Выключен — серая дорожка, наведение — голубая; включён — синяя. Disabled включённый — полупрозрачный.
+ * Как в прототипе: выключен — светло-голубая дорожка (chart/track-soft), при наведении — accent; включён — синяя.
+ * Disabled — весь переключатель полупрозрачный.
  */
 export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch(
   { checked, onChange, label, helper, disabled, id, className, ...rest },
@@ -33,7 +34,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
         className={cn(
           'group/sw inline-flex min-h-7 items-center gap-2.5 self-start rounded-6 text-left',
           disabled ? 'cursor-not-allowed' : 'cursor-pointer',
-          disabled && checked && 'opacity-50',
+          disabled && 'opacity-50',
         )}
         {...rest}
       >
@@ -43,9 +44,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
             'relative h-6 w-10 shrink-0 rounded-999 transition-colors duration-150',
             checked
               ? cn('bg-action-primary', !disabled && 'group-hover/sw:bg-action-hover')
-              : disabled
-                ? 'bg-chart-track-soft'
-                : 'bg-border-default group-hover/sw:bg-border-blue',
+              : cn('bg-chart-track-soft', !disabled && 'group-hover/sw:bg-border-blue'),
           )}
         >
           <span
@@ -55,7 +54,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
             )}
           />
         </span>
-        {label && <span className={cn('text-body-m', disabled && !checked ? 'text-text-disabled' : 'text-text-primary')}>{label}</span>}
+        {label && <span className="text-body-m text-text-primary">{label}</span>}
       </button>
       {helper && <p id={`${swId}-help`} className="mt-0.5 ml-12.5 text-caption text-text-secondary">{helper}</p>}
     </div>

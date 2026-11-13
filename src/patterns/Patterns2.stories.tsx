@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Participant, ScorePill, ScoreCard, SignalTile, ReportSection } from './Prescoring';
+import { Participant, ScorePill, ScoreCard, SignalTile, SignalGrid, ReportSection, ReportGrid } from './Prescoring';
+import { MoreButton } from './Banks';
 import { Modal } from '../components/Modal';
 import { Button } from '../components/Button';
 import { TextTabs } from '../components/Tabs';
@@ -13,9 +14,9 @@ export const Участники: S = {
   name: 'Participant',
   render: () => (
     <div className="grid max-w-[980px] grid-cols-[repeat(auto-fill,minmax(280px,1fr))] items-start gap-4">
-      <Participant name="Иванов Иван Иванович" role="Заёмщик" status="Заполняется" statusTone="accent" score={902} onPrescoring={() => {}} />
-      <Participant name="Иванова Мария Сергеевна" role="Созаёмщик" status="Не начато" score={744} warnings={1} onPrescoring={() => {}} />
-      <Participant name="Иванова Мария Сергеевна" role="Созаёмщик" status="Не начато" onPrescoring={() => {}} onRemove={() => {}} />
+      <Participant current name="Иванов Иван Иванович" role="Заёмщик" status="Заполняется" statusTone="accent" score={902} onPrescoring={() => {}} />
+      <Participant name="Иванова Мария Сергеевна" role="Созаёмщик · супруг(а)" status="После заёмщика" score={744} warnings={1} onPrescoring={() => {}} />
+      <Participant name="" index={3} role="Созаёмщик" status="После заёмщика" onPrescoring={() => {}} onRemove={() => {}} />
     </div>
   ),
 };
@@ -44,13 +45,13 @@ export const Сигналы: S = {
   name: 'Signal tile и Report section',
   render: () => (
     <div className="flex max-w-[720px] flex-col gap-6 rounded-20 bg-surface-white p-6">
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
+      <SignalGrid>
         <SignalTile label="Банкротство" value="Нет" />
         <SignalTile label="Исп. производства" value="Штраф ГИБДД" state="warning" />
         <SignalTile label="Просрочки" value="Нет" />
         <SignalTile label="Паспорт" value="Действителен" />
-      </div>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-x-8 gap-y-6">
+      </SignalGrid>
+      <ReportGrid>
         <ReportSection title="Кредитная нагрузка" rows={[
           { label: 'Действующие кредиты', value: 'Есть' }, { label: 'Количество кредитов', value: '3–4' },
           { label: 'Сумма кредитов', value: '50 000–100 000 ₽' }, { label: 'Запросы за 30 дней', value: '4', warning: true },
@@ -58,7 +59,7 @@ export const Сигналы: S = {
         <ReportSection title="Платёжная дисциплина" rows={[
           { label: 'Просрочки сейчас', value: 'Нет' }, { label: 'Просрочки за 2 года', value: 'Нет' }, { label: 'Максимальная просрочка', value: '—' },
         ]} />
-      </div>
+      </ReportGrid>
     </div>
   ),
 };
@@ -77,12 +78,14 @@ export const Отчёт: S = {
           <div className="flex flex-col gap-5">
             <TextTabs aria-label="Участник" value={who} onChange={setWho} items={[{ value: 'main', label: 'Иванов И. И.' }, { value: 'co', label: 'Иванова М. С.' }]} />
             <ScoreCard {...p} />
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
+            <SignalGrid>
               <SignalTile label="Банкротство" value="Нет" />
               <SignalTile label="Исп. производства" value={who === 'main' ? 'Нет' : 'Штраф ГИБДД'} state={who === 'main' ? 'ok' : 'warning'} />
               <SignalTile label="Просрочки" value="Нет" />
               <SignalTile label="Паспорт" value="Действителен" />
-            </div>
+              <SignalTile label="Розыск" value="Нет" />
+              <SignalTile label="Долговая нагрузка" value={who === 'main' ? 'Низкая' : 'Средняя'} state={who === 'main' ? 'ok' : 'warning'} />
+            </SignalGrid>
             <ReportSection title="Кредитная нагрузка" rows={[
               { label: 'Действующие кредиты', value: 'Есть' }, { label: 'Количество кредитов', value: '3–4' },
               { label: 'Сумма кредитов', value: '50 000–100 000 ₽' }, { label: 'Запросы за 30 дней', value: '4', warning: true },
