@@ -8,7 +8,7 @@ import { ParticipantsCard } from '../patterns/Extra';
 import { Participant } from '../patterns/Prescoring';
 import { Aside, BrokerPage, StepBar } from './kit';
 
-const meta: Meta = { title: 'Экраны/Сценарии/1.2 Семейное положение', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Экраны/Брокер/1.2 Семейное положение', parameters: { layout: 'fullscreen' } };
 export default meta;
 type S = StoryObj;
 
@@ -23,7 +23,7 @@ function FamilyScreen({ status: s0 = 'Женат / замужем', excluded: e0
   const [co, setCo] = useState(c0);
   const married = status === 'Женат / замужем';
   return (
-    <BrokerPage meta="Шаг 3 из 5 · Семейное положение" aside={<Aside cur="family" />} bar={<StepBar />}>
+    <BrokerPage meta="Шаг 3 из 5 · Семейное положение" aside={<Aside cur="family" />} bar={<StepBar step="family" />}>
       <ParticipantsCard onAdd={() => {}}>
         <Participant current name="Иванов Иван Иванович" role="Заёмщик" status="Заполняется" statusTone="accent" score={902} onPrescoring={() => {}} />
         {married && co && <Participant name="Иванова Мария Петровна" role="Созаёмщик · супруга" status="После заёмщика" onPrescoring={() => {}} onRemove={() => setCo(false)} />}
@@ -47,7 +47,7 @@ function FamilyScreen({ status: s0 = 'Женат / замужем', excluded: e0
   );
 }
 
-export const Основной: S = { name: 'Женат / замужем', render: () => <FamilyScreen /> };
+export const Основной: S = { name: 'Основной экран · женат / замужем', render: () => <FamilyScreen /> };
 export const СупругСозаёмщик: S = { name: 'Супруг — созаёмщик', render: () => <FamilyScreen kids="1" spouseCo /> };
 export const СупругИсключён: S = { name: 'Супруг исключён из сделки', render: () => <FamilyScreen excluded="Да, по брачному договору" /> };
 export const НеВБраке: S = { name: 'Не в браке', render: () => <FamilyScreen status="В разводе" kids="2" /> };

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { BottomBar, Autosave } from '../components/Layout';
+import { BottomBar } from '../components/Layout';
 import { Card, SectionTitle, FormGrid, Inset } from '../components/Surface';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -12,7 +12,7 @@ import { ParticipantsCard } from '../patterns/Extra';
 import { Participant } from '../patterns/Prescoring';
 import { Aside, BrokerPage, StepBar } from './kit';
 
-const meta: Meta = { title: 'Экраны/Сценарии/1.1 Персональные данные', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Экраны/Брокер/1.1 Персональные данные', parameters: { layout: 'fullscreen' } };
 export default meta;
 type S = StoryObj;
 
@@ -40,14 +40,13 @@ function PersonalScreen({ mode = 'filled' }: { mode?: Mode }) {
     <BrokerPage meta="Шаг 2 из 5 · Персональные данные" aside={<Aside cur="personal" />}
       bar={mode === 'offline'
         ? <BottomBar left={<span className="flex items-center gap-2 text-caption text-warning-text"><Spinner size={14} />Сохраним, когда появится связь</span>}><Button variant="outline">Назад</Button><Button>Продолжить</Button></BottomBar>
-        : <StepBar alert={errors ? <Alert type="warning" title="3 поля требуют внимания">Исправьте их — остальное уже сохранено</Alert> : undefined} left={errors ? 'Шаг 2 из 5 · Персональные данные' : <Autosave />} />}>
+        : <StepBar step="personal" errors={errors ? ['birthDate', 'phone', 'snils'] : undefined} />}>
       {mode === 'offline' && <Alert type="warning" title="Нет связи — изменения сохранятся, когда интернет появится">Можно продолжать заполнять анкету: данные останутся на этом устройстве</Alert>}
       <ParticipantsCard onAdd={() => {}}>
         <Participant current name="Иванов Иван Иванович" role="Заёмщик" status="Заполняется" statusTone="accent" score={902} onPrescoring={() => {}} />
       </ParticipantsCard>
       <Card padding="l" gap={40}>
         <SectionTitle description="Загрузите паспорт и СНИЛС для заполнения данных или введите реквизиты вручную">Персональные данные</SectionTitle>
-        {errors && <Alert type="error" title="Чтобы перейти дальше, заполните недостающие данные">Не хватает: дата рождения, номер телефона и СНИЛС. Остальное уже сохранено</Alert>}
         <FormGrid>
           <div className="flex flex-col gap-3">
             {mode === 'uploadFail'
@@ -102,7 +101,7 @@ function PersonalScreen({ mode = 'filled' }: { mode?: Mode }) {
   );
 }
 
-export const Основной: S = { name: 'Данные распознаны', render: () => <PersonalScreen /> };
+export const Основной: S = { name: 'Основной экран · данные распознаны', render: () => <PersonalScreen /> };
 export const Ошибки: S = { name: 'Ошибки при переходе дальше', render: () => <PersonalScreen mode="errors" /> };
 export const Распознаём: S = { name: 'Распознаём паспорт', render: () => <PersonalScreen mode="recognizing" /> };
 export const Вручную: S = { name: 'Ввод вручную', render: () => <PersonalScreen mode="manual" /> };
@@ -121,7 +120,7 @@ const CO_STEPS = [
 export const Созаёмщик: S = {
   name: 'Анкета созаёмщика · персональные данные',
   render: () => (
-    <BrokerPage meta="Созаёмщик · шаг 2 из 4 · Персональные данные" aside={<Aside cur="co-personal" steps={CO_STEPS} done={['podbor', 'main']} />} bar={<StepBar />}>
+    <BrokerPage meta="Созаёмщик · шаг 2 из 4 · Персональные данные" aside={<Aside cur="co-personal" steps={CO_STEPS} done={['podbor', 'main']} />} bar={<StepBar left="Созаёмщик · шаг 2 из 4 · Персональные данные" />}>
       <ParticipantsCard onAdd={() => {}}>
         <Participant name="Иванов Иван Иванович" role="Заёмщик" status="Заполнено" statusTone="success" score={902} />
         <Participant current name="Иванова Мария Петровна" role="Созаёмщик · супруга" status="Заполняется" statusTone="accent" onPrescoring={() => {}} />

@@ -12,7 +12,7 @@ import { SummaryList, SummaryRow } from '../patterns/Params';
 import { SignerHeader, DocBox, SignaturePad, PackageCard } from '../patterns/Extra';
 import { BrokerPage, STEPS, doneBefore } from './kit';
 
-const meta: Meta = { title: 'Экраны/Сценарии/1.4 Подписание и отправка', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Экраны/Брокер/1.4 Подписание и отправка', parameters: { layout: 'fullscreen' } };
 export default meta;
 type S = StoryObj;
 
@@ -118,7 +118,7 @@ function SigningScreen({ signers, errors, allSent }: Props) {
 const IVANOV: Signer = { name: 'Иванов Иван Иванович', role: 'Заёмщик', method: 'screen', state: 'none' };
 const MARIA: Signer = { name: 'Иванова Мария Петровна', role: 'Созаёмщик', method: 'phone', state: 'none' };
 
-export const НаЭкране: S = { name: 'На экране', render: () => <SigningScreen signers={[IVANOV]} /> };
+export const НаЭкране: S = { name: 'Основной экран · подпись на экране', render: () => <SigningScreen signers={[IVANOV]} /> };
 export const Бумажная: S = { name: 'Бумажная версия', render: () => <SigningScreen signers={[{ ...IVANOV, method: 'paper' }]} /> };
 export const СсылкаОтправлена: S = { name: 'Ссылка отправлена', render: () => <SigningScreen signers={[{ ...IVANOV, method: 'phone', state: 'linkSent' }]} /> };
 export const Подписаны: S = { name: 'Документы подписаны', render: () => <SigningScreen signers={[{ ...IVANOV, state: 'signed' }]} /> };

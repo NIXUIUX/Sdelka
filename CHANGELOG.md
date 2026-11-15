@@ -21,7 +21,7 @@
 - Сообщения: `Alert`, `Toast` + `useToast`, `Modal`, `LoadingState`
 - Файлы: `UploadZone`, `FileItem`
 - `Checkbox locked` — светло-голубой квадрат с белой галочкой, как в Figma; `ApprovedParams defaultEditing` — открыть сразу в режиме правки
-- Каркас страницы: `Container`, `AppHeader`, `FlowHead`, `PageLayout`, `Card`, `FormGrid`, `Inset`, `BottomBar`, `Autosave`, `HelpCard` и др.
+- Каркас страницы: `Container`, `AppHeader`, `FlowHead`, `PageLayout`, `Card`, `FormGrid`, `Inset`, `BottomBar`, `HelpCard` и др.
 
 ### Паттерны флоу
 - Подбор банков: `BankRow`, `PickedBanks`, `Metric`, `CreditParams`, `ApprovedParams`
@@ -31,7 +31,11 @@
 - Письмо клиенту: `OfferLetter`, `MailPreview`, иллюстрации `HouseIllustration` и `DocsIllustration` (состояния upload / sent / waiting)
 
 ### Storybook
-- «Экраны / Сценарии»: 71 состояние флоу Б по секциям Figma — заявки, подбор, окна, прескоринг, анкета 1.1–1.4, статус в банках, короткий флоу Сбербанка, страница клиента
+- «Экраны»: 71 состояние флоу Б в порядке Figma. «Брокер» — 0.0 Ипотечные заявки, 1.0 Подбор условий (+ окна), 1.1–1.5, прескоринг, короткий флоу Сбербанка; «Клиент» — загрузка документов по ссылке. В каждом разделе первым идёт основной экран, за ним ветки и состояния
+- Ошибки шага — одна оранжевая плашка в нижней панели с названиями полей (`errorSummary`), как в прототипе
+
+### Убрано
+- `Autosave` («Изменения сохраняются автоматически») — эту фразу не показываем; слева в нижней панели — номер шага
 
 ### Совместимость
 - React 18 и 19 (проверено на 18.3 и 19.3), ESM-сборка, типы TypeScript в комплекте

@@ -16,7 +16,7 @@ import { StatusBankCard, ConditionsBox, InfoHero, MailItem, BankReply, MailCompo
 import { annuity, pct, rub, years } from '../utils/format';
 import { BrokerPage } from './kit';
 
-const meta: Meta = { title: 'Экраны/Сценарии/1.5 Статус в банках', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Экраны/Брокер/1.5 Статус в банках', parameters: { layout: 'fullscreen' } };
 export default meta;
 type S = StoryObj;
 
@@ -144,7 +144,7 @@ function StatusScreen({ view = 'waiting', bank = 'Абсолют Банк' }: { 
   );
 }
 
-export const Ожидание: S = { name: 'Ожидаем решение банка', render: () => <StatusScreen /> };
+export const Ожидание: S = { name: 'Основной экран · ожидаем решение', render: () => <StatusScreen /> };
 export const Одобрено: S = { name: 'Одобрено', render: () => <StatusScreen view="approved" /> };
 export const Правка: S = { name: 'Правка параметров одобрения', render: () => <StatusScreen view="editApproved" /> };
 export const Ответ: S = { name: 'Получен ответ банка', render: () => <StatusScreen view="reply" /> };

@@ -17,7 +17,7 @@ import { BankRow, MoreButton, PickedBanks, type PickedBank } from '../patterns/B
 import { pct, rub } from '../utils/format';
 import { BrokerPage, Help, OFFERS, UNFIT, STEPS, OpenChip } from './kit';
 
-const meta: Meta = { title: 'Экраны/Сценарии/1.0 Подбор условий', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Экраны/Брокер/1.0 Подбор условий', parameters: { layout: 'fullscreen' } };
 export default meta;
 type S = StoryObj;
 
@@ -160,7 +160,7 @@ function PodborScreen({ family, open = null, more, tab: t0 = 'all', q: q0 = '', 
   );
 }
 
-export const Основной: S = { name: 'Подбор условий', render: () => <PodborScreen /> };
+export const Основной: S = { name: 'Основной экран', render: () => <PodborScreen /> };
 export const Семейная: S = { name: 'Семейная ипотека', render: () => <PodborScreen family open="kids" /> };
 export const ОшибкаСтоимости: S = { name: 'Ошибки параметров · стоимость', render: () => <PodborScreen open="price" /> };
 export const ОшибкаВзноса: S = { name: 'Ошибки параметров · взнос', render: () => <PodborScreen family open="down" /> };

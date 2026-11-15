@@ -19,7 +19,7 @@ export { Toast, ToastProvider, useToast } from './Toast';
 export { Modal, type ModalProps } from './Modal';
 export { UploadZone, FileItem, fileSize, fileExt, type UploadZoneProps, type FileItemProps } from './Upload';
 export {
-  Container, AppHeader, FlowHead, StepItem, StepsNav, BottomBar, HelpCard, HSteps, Autosave, useStuck,
+  Container, AppHeader, FlowHead, StepItem, StepsNav, BottomBar, HelpCard, HSteps, useStuck,
   type AppHeaderProps, type FlowHeadProps, type StepItemProps, type StepState, type StepsNavProps, type BottomBarProps, type HelpCardProps, type HStepsProps,
 } from './Layout';
 export { SearchField, type SearchFieldProps } from './SearchField';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { BottomBar, StepsNav, Autosave } from '../components/Layout';
+import { BottomBar, StepsNav } from '../components/Layout';
 import { Card, SectionTitle, FormGrid, Inset, IconTile } from '../components/Surface';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -12,7 +12,7 @@ import { SummaryList, SummaryRow, CreditParams } from '../patterns/Params';
 import { StatusBankCard, InfoHero } from '../patterns/Status';
 import { BrokerPage, Help, PARAMS } from './kit';
 
-const meta: Meta = { title: 'Экраны/Сценарии/Короткий флоу Сбербанка', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Экраны/Брокер/С · Короткий флоу Сбербанка', parameters: { layout: 'fullscreen' } };
 export default meta;
 type S = StoryObj;
 
@@ -32,7 +32,7 @@ export const Персональные: S = {
     const [months, setMonths] = useState<number | null>(32);
     return (
       <BrokerPage meta="Шаг 2 из 3 · Персональные данные" aside={<SberAside cur="personal" />}
-        bar={<BottomBar left={<Autosave />}><Button variant="outline">Назад</Button><Button>Продолжить</Button></BottomBar>}>
+        bar={<BottomBar left="Шаг 2 из 3 · Персональные данные"><Button variant="outline">Назад</Button><Button>Продолжить</Button></BottomBar>}>
         <Card padding="l" gap={40}>
           <SectionTitle description="Загрузите паспорт и введите контакты — анкета для Сбербанка короткая">Персональные данные</SectionTitle>
           <div className="flex flex-col gap-3"><UploadZone title="Паспорт РФ" onFiles={() => {}} /><FileItem name="Паспорт.pdf" meta="1,8 МБ · загружен" onRemove={() => {}} /></div>

@@ -9,7 +9,7 @@ import { StepperField } from '../components/Stepper';
 import { Alert } from '../components/Alert';
 import { Aside, BrokerPage, StepBar } from './kit';
 
-const meta: Meta = { title: 'Экраны/Сценарии/1.3 Доход и работа', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Экраны/Брокер/1.3 Доход и работа', parameters: { layout: 'fullscreen' } };
 export default meta;
 type S = StoryObj;
 
@@ -25,10 +25,9 @@ function IncomeScreen({ mode = 'hired' }: { mode?: Mode }) {
   const [jobs, setJobs] = useState<number | null>(mode === 'extraJob' ? 2 : 1);
   return (
     <BrokerPage meta="Шаг 4 из 5 · Доход и работа" aside={<Aside cur="income" />}
-      bar={<StepBar left={missing ? 'Шаг 4 из 5 · Доход и работа' : undefined} alert={missing ? <Alert type="warning" title="4 поля требуют внимания">Исправьте их — остальное уже сохранено</Alert> : undefined} />}>
+      bar={<StepBar step="income" errors={missing ? ['income', 'orgInn', 'startDate', 'year'] : undefined} errorTitle="Не хватает данных о доходе и работе" />}>
       <Card padding="l" gap={24}>
         <SectionTitle description="Изменения сразу влияют на расчёт платёжеспособности">Доход участника</SectionTitle>
-        {missing && <Alert type="error" title="Не хватает данных о доходе и работе">Не хватает: основной доход, ИНН организации и дата начала работы. Остальное уже сохранено</Alert>}
         <FormGrid>
           <Select label="Тип занятости" options={['По найму', 'ИП', 'Самозанятый']} value={self ? 'Самозанятый' : 'По найму'} onChange={() => {}} />
           {!self && <Select label="Вид трудового договора" options={['Бессрочный трудовой договор', 'Срочный']} value="Бессрочный трудовой договор" onChange={() => {}} />}
@@ -77,7 +76,7 @@ function IncomeScreen({ mode = 'hired' }: { mode?: Mode }) {
   );
 }
 
-export const Основной: S = { name: 'По найму', render: () => <IncomeScreen /> };
+export const Основной: S = { name: 'Основной экран · по найму', render: () => <IncomeScreen /> };
 export const Самозанятый: S = { name: 'Самозанятый', render: () => <IncomeScreen mode="selfEmployed" /> };
 export const ДопМесто: S = { name: 'Дополнительное место работы', render: () => <IncomeScreen mode="extraJob" /> };
 export const НеХватает: S = { name: 'Не хватает данных', render: () => <IncomeScreen mode="missing" /> };

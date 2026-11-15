@@ -9,7 +9,7 @@ import { UploadZone, FileItem } from '../components/Upload';
 import { ClientHero, BrokerContact, DocsIllustration, OfferLetter, type DocsIllustrationState } from '../patterns/Extra';
 import { BROKER, ClientPage } from './kit';
 
-const meta: Meta = { title: 'Экраны/Сценарии/Клиент — загрузка документов', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Экраны/Клиент/К · Загрузка документов по ссылке', parameters: { layout: 'fullscreen' } };
 export default meta;
 type S = StoryObj;
 

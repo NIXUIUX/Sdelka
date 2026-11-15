@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { AppHeader, FlowHead, StepsNav, StepItem, BottomBar, HelpCard, Container, HSteps, Autosave } from './Layout';
+import { AppHeader, FlowHead, StepsNav, StepItem, BottomBar, HelpCard, Container, HSteps } from './Layout';
 import { Button } from './Button';
 import { Alert } from './Alert';
+import { ERROR_ALERT_TITLE, errorSummary } from '../utils/validators';
 import { Input } from './Input';
 import { Select } from './Select';
 
@@ -80,7 +81,7 @@ export const Страница: S = {
             </div>
           </Container>
         </main>
-        <BottomBar left={<Autosave />} alert={<Alert type="warning" title="2 поля требуют внимания">Дата рождения, СНИЛС</Alert>}>
+        <BottomBar left="Шаг 2 из 5 · Персональные данные" alert={<Alert type="warning" title={ERROR_ALERT_TITLE}>{errorSummary(['birthDate', 'snils'])}</Alert>}>
           <Button variant="outline">Назад</Button><Button>Продолжить</Button>
         </BottomBar>
       </div>

@@ -1,6 +1,8 @@
 /* Общие куски экранов для историй «Экраны/…». В пакет не входят — только Storybook. */
 import { useState, type ReactNode } from 'react';
-import { AppHeader, FlowHead, StepsNav, BottomBar, HelpCard, Container, Autosave } from '../components/Layout';
+import { AppHeader, FlowHead, StepsNav, BottomBar, HelpCard, Container } from '../components/Layout';
+import { Alert } from '../components/Alert';
+import { ERROR_ALERT_TITLE, errorSummary } from '../utils/validators';
 import { PageLayout } from '../components/Surface';
 import { Button } from '../components/Button';
 import { Chip, type ChipProps } from '../components/Chip';
@@ -81,10 +83,19 @@ export function BrokerPage({ meta, children, aside, bar, title = 'Заявка �
   );
 }
 
-/** Нижняя панель шага анкеты: «Назад» + основная кнопка */
-export function StepBar({ left, primary = 'Продолжить', alert, back = true }: { left?: ReactNode; primary?: ReactNode; alert?: ReactNode; back?: boolean }) {
+/** «Шаг 2 из 5 · Персональные данные» — слева в нижней панели анкеты, как в прототипе */
+export const stepLabel = (key: string) => `Шаг ${STEP_N[key]} из ${STEPS.length} · ${STEPS.find((s) => s.key === key)?.label ?? ''}`;
+
+/**
+ * Нижняя панель шага анкеты: слева номер шага, справа «Назад» + основная кнопка.
+ * errors — ключи полей с ошибкой: оранжевая плашка над кнопками перечисляет их по названиям (прототип: firstErrAlert).
+ */
+export function StepBar({ step, left, primary = 'Продолжить', errors, errorTitle = ERROR_ALERT_TITLE, alert, back = true }: {
+  step?: string; left?: ReactNode; primary?: ReactNode; errors?: string[]; errorTitle?: ReactNode; alert?: ReactNode; back?: boolean;
+}) {
+  const errAlert = errors?.length ? <Alert type="warning" title={errorTitle}>{errorSummary(errors)}</Alert> : undefined;
   return (
-    <BottomBar alert={alert} left={left ?? <Autosave />}>
+    <BottomBar alert={alert ?? errAlert} left={left ?? (step ? stepLabel(step) : undefined)}>
       {back && <Button variant="outline">Назад</Button>}
       <Button>{primary}</Button>
     </BottomBar>

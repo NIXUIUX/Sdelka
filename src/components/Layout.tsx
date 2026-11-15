@@ -315,11 +315,3 @@ export function HSteps({ steps, current, done, onStep, className }: HStepsProps)
   );
 }
 
-/** «Изменения сохраняются автоматически» — слева в футере анкеты (прототип: .autosave) */
-export function Autosave({ children = 'Изменения сохраняются автоматически' }: { children?: ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-2 text-[13px] text-text-secondary">
-      <Icon name="check-check" size={16} className="text-success" />{children}
-    </span>
-  );
-}

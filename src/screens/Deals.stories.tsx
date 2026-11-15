@@ -13,7 +13,7 @@ import { DealsTable, DEAL_STATUS_TONE, type Deal } from '../patterns/Status';
 import { plural } from '../utils/format';
 import { Header, OpenChip } from './kit';
 
-const meta: Meta = { title: 'Экраны/Сценарии/0.0 Ипотечные заявки', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Экраны/Брокер/0.0 Ипотечные заявки', parameters: { layout: 'fullscreen' } };
 export default meta;
 type S = StoryObj;
 
@@ -97,7 +97,7 @@ function DealsScreen({ q: q0 = '', mine: m0 = false, unread: u0 = false, archive
   );
 }
 
-export const Основной: S = { name: 'Список заявок', render: () => <DealsScreen /> };
+export const Основной: S = { name: 'Основной экран', render: () => <DealsScreen /> };
 export const НичегоНеНашли: S = { name: 'Ничего не нашли', render: () => <DealsScreen q="Петров Сергей" /> };
 export const ФильтрОткрыт: S = { name: 'Фильтр открыт', render: () => <DealsScreen open="region" region="Москва" /> };
 export const ОшибкаДаты: S = { name: 'Ошибка даты в фильтре', render: () => <DealsScreen open="date" dateError /> };
