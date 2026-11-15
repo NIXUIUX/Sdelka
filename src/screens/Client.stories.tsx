@@ -70,7 +70,7 @@ export const Письмо: S = {
     <div className="min-h-dvh bg-surface-page px-4 py-10">
       <OfferLetter firstName="Иван" requestLabel="Заявка № BD2A6E33 · 14.11.2026" program="Стандартная ипотека · г. Москва"
         params={[{ label: 'Стоимость', value: '10 000 000 ₽' }, { label: 'Взнос', value: '4 000 000 ₽' }, { label: 'Кредит', value: '6 000 000 ₽' }, { label: 'Срок', value: '25 лет' }]}
-        banks={[{ bank: 'Абсолют Банк', rate: '18,95%', payment: '95 619 ₽', income: '159 365 ₽' }, { bank: 'Уралсиб', rate: '19%', payment: '95 764 ₽', income: '159 607 ₽' }]}
+        banks={[{ bank: 'Абсолют Банк', rate: '18,95%', payment: '95 619 ₽', income: '159 365 ₽' }]}
         manager={BROKER} />
     </div>
   ),
