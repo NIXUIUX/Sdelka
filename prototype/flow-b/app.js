@@ -115,8 +115,8 @@ function MoneyField({id,label,value,onChange,suffix='₽',error}){
   return html`<${Field} id=${id} label=${label} value=${Math.round(value).toLocaleString('ru-RU')} suffix=${suffix} error=${error} inputMode="numeric" onChange=${v=>onChange(+digits(v)||0)}/>`;
 }
 /* Поле со слайдером по нижней границе: ввод цифрами или перетаскиванием. Значение применяется через полсекунды после остановки, на blur и Enter */
-/* Быстрый выбор первого взноса: на 0,1 п.п. выше порогов банков, чтобы не упереться в границу 20 / 30 / 40 / 50% */
-const DOWN_PICKS=[20.1,30.1,40.1,50.1];
+/* Быстрый выбор первого взноса и срока */
+const DOWN_PICKS=[20,30,40,50];
 const TERM_PICKS=[10,15,20,30];
 const pctStr=p=>(Math.round(p*10)/10).toLocaleString('ru-RU')+'%';
 function RangeField({id,label,value,onCommit,min,max,step=1,unit='money',suffix='₽',aside,map,error,below}){
