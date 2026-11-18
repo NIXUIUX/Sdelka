@@ -569,3 +569,7 @@ body{margin:0}
 .qchip:hover{border-color:var(--color-border-blue);color:var(--color-text-primary)}
 .qchip.on{background:var(--color-surface-card);border-color:var(--color-action-primary);color:var(--color-action-primary);font-weight:600}
 .qchip:focus-visible{outline:2px solid var(--color-action-primary);outline-offset:2px}
+/* Плюсы банка в активной карточке — синие, в пару к оранжевому «Укажите …» у неподошедших */
+.bank .perks{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 20px;margin:0;padding:0;list-style:none}
+.bank .perks li{display:flex;align-items:center;gap:6px;font-size:13px;line-height:18px;color:var(--color-action-primary)}
+.bank .perks svg{flex:none}
