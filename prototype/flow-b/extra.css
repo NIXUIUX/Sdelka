@@ -573,3 +573,21 @@ body{margin:0}
 .bank .perks{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 20px;margin:0;padding:0;list-style:none}
 .bank .perks li{display:flex;align-items:center;gap:6px;font-size:13px;line-height:18px;color:var(--color-action-primary)}
 .bank .perks svg{flex:none}
+/* Подбор: раскрывающийся блок «Клиент и платёжеспособность» */
+.pf-more{border:1px solid var(--color-border-default);border-radius:var(--radius-16)}
+.pf-more-h{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;text-align:left;border-radius:var(--radius-16)}
+.pf-more-h:hover{background:var(--color-surface-page)}
+.pf-more-t{display:flex;flex-direction:column;min-width:0}.pf-more-t b{font-size:15px;font-weight:600}
+.pf-more-t span{font-size:13px;color:var(--color-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-more .cp-chev{flex:none;color:var(--color-text-secondary);transition:transform .15s}.pf-more.open .cp-chev{transform:rotate(180deg)}
+.pf-more-b{padding:4px 16px 16px}
+.pf-span{grid-column:span 2}
+.tip{position:relative;display:inline-flex;vertical-align:-2px;margin-left:4px;color:var(--color-text-muted);cursor:help;pointer-events:auto}
+.tip-b{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);width:260px;padding:10px 12px;border-radius:12px;background:#1f2129;color:#fff;font-size:13px;line-height:18px;white-space:normal;opacity:0;visibility:hidden;transition:opacity .15s;z-index:50;pointer-events:none}
+.tip:hover .tip-b,.tip:focus .tip-b{opacity:1;visibility:visible}
+.field .lab:has(.tip){overflow:visible}
+.bank .perks li.on{font-weight:600}
+.bank .why-warn{grid-column:1/-1;display:flex;align-items:center;gap:6px;margin:0;font-size:13px;line-height:18px;color:var(--color-warning-text)}
+.bank .why-warn svg{flex:none}
+@media(max-width:860px){.pf-span{grid-column:span 2}}
+@media(max-width:520px){.pf-more-b{padding:4px 12px 12px}.pf-more-t span{white-space:normal}}

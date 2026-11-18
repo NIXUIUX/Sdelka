@@ -51,6 +51,11 @@ const PERKS={'Абсолют Банк':['−1 п.п. для зарплатног
   'Газпромбанк':['Решение за 1 рабочий день'],'Райффайзен':['Досрочное погашение без комиссии'],'Т-Банк':['Сделка онлайн без визита в офис'],
   'Сбербанк':['−0,3 п.п. при электронной регистрации'],'Банк Санкт-Петербург':['Справка о доходах по форме банка'],'Росбанк':['Кредитные каникулы до 6 месяцев'],
   'Промсвязьбанк':['−0,5 п.п. для военных и госслужащих'],'Россельхозбанк':['−0,4 п.п. для зарплатного проекта']};
+/* Скидка к ставке для зарплатных клиентов банка, п.п. — применяется, если банк выбран в «Зарплатный банк» */
+const SALARY_CUT={'Абсолют Банк':1,'Альфа-Банк':.6,'ВТБ':.5,'Россельхозбанк':.4};
+const SEXES=['Мужской','Женский'];
+const EMPLOYMENTS=['По найму','ИП','Самозанятый','Собственник бизнеса','Пенсионер'];
+const PROOFS=['Госуслуги / СФР','2-НДФЛ','Справка по форме банка','Без подтверждения дохода'];
 const FULL_STEPS=[['podbor','Подбор условий'],['personal','Персональные данные'],['family','Семейное положение'],['income','Доход и работа'],['signing','Подписание и отправка']];
 /* Короткий флоу: если в заявке выбран только Сбербанк — анкета из одного шага и отправка без подписания */
 const SBER_STEPS=[['podbor','Подбор условий'],['personal','Персональные данные'],['signing','Отправка в банк']];
@@ -90,7 +95,8 @@ const emailOk=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
 /* ---------- store ---------- */
 const Ctx=createContext(null);
 const useApp=()=>useContext(Ctx);
-const DEFAULT_FILTERS={goal:GOALS[0],program:PROGRAMS[0].n,kids:2,kidsDisabled:false,region:REGIONS[0],price:10000000,down:4000000,term:25,certOn:false,certType:CERTS[0],certAmount:690267,subsidyOn:false,domrf:null};
+const DEFAULT_FILTERS={goal:GOALS[0],program:PROGRAMS[0].n,kids:2,kidsDisabled:false,region:REGIONS[0],price:10000000,down:4000000,term:25,certOn:false,certType:CERTS[0],certAmount:690267,subsidyOn:false,domrf:null,
+  /* клиент и платёжеспособность */ birth:'',sex:'Мужской',emp:'По найму',proof:'Госуслуги / СФР',salaryBank:'Не выбран',income:0,oblig:0};
 const PASSPORT_DATA={fio:'Иванов Иван Иванович',birthPlace:'г. Тверь',birthDate:'17.04.1986',citizenship:'Российская Федерация',passNum:'6915 482731',passDate:'23.07.2015',passCode:'690-014',passWho:'УМВД России по Тверской области',regAddr:'г. Тверь, ул. Озёрная, д. 18, кв. 42'};
 const DEFAULT_ANKETA={recognized:false,fio:'',birthPlace:'',birthDate:'',citizenship:'Российская Федерация',passNum:'',passDate:'',passCode:'',passWho:'',regAddr:'',phone:'',changedName:'Не менялось',gender:'Мужской',inn:'',snils:'',email:'',factDiff:false,factAddr:'',prevPassport:false,
   marital:'Женат / замужем',spouseExcluded:'Нет',kids:'Нет',spouseCo:false,
@@ -111,9 +117,9 @@ function FieldError({text}){return typeof text==='string'&&text?html`<p class="e
 /* Плейсхолдер по маске, если поле его не задало — чтобы при фокусе был виден формат */
 const MASK_PH={phone:'+7 (000) 000-00-00',date:'дд.мм.гггг',snils:'000-000-000 00',pass:'0000 000000',passSer:'00 00',passNo:'000000',code:'000-000',inn10:'0000000000',inn12:'000000000000',year:'гггг',email:'name@example.com'};
 const MASK_IM={phone:'tel',date:'numeric',snils:'numeric',pass:'numeric',code:'numeric',inn10:'numeric',inn12:'numeric',year:'numeric',years:'numeric',months:'numeric',money:'numeric',email:'email'};
-function Field({id,label,value,onChange,placeholder,helper,error,disabled,suffix,inputMode,mask}){
+function Field({id,label,value,onChange,placeholder,helper,error,disabled,suffix,inputMode,mask,sm}){
   const m=mask&&MASKS[mask];
-  return html`<div><label class=${'field'+(error?' err':'')+(disabled?' dis':'')} for=${id}><span class="lab">${label}</span>
+  return html`<div><label class=${'field'+(sm?' sm':'')+(error?' err':'')+(disabled?' dis':'')} for=${id}><span class="lab">${label}</span>
     <input id=${id} value=${value} placeholder=${placeholder||(mask&&MASK_PH[mask])||''} disabled=${disabled} inputmode=${inputMode||(mask&&MASK_IM[mask])||'text'} maxlength=${mask?MASK_LEN[mask]:null} onInput=${e=>{const x=m?m(e.target.value):e.target.value;if(m)e.target.value=x;onChange&&onChange(x)}}/>
     ${suffix&&html`<span class="suffix">${suffix}</span>`}</label>
     ${error&&typeof error==='string'?html`<${FieldError} text=${error}/>`:helper&&html`<p class="helper">${helper}</p>`}</div>`;
@@ -363,6 +369,9 @@ function Podbor(){
   const [modal,setModal]=useState(null); const [bankInfo,setBankInfo]=useState(null);
   const [ftab,setFtab]=useState('all'); const [q,setQ]=useState(''); const [sort,setSort]=useState('По комиссии платформы'); const [page,setPage]=useState(1);
   const [errs,setErrs]=useState({}); const [needBanks,setNeedBanks]=useState(false);
+  const [clOpen,setClOpen]=useState(false);
+  const clFilled=[s.birth,s.salaryBank!=='Не выбран',s.income>0,s.oblig>0].filter(Boolean).length;
+  const freeIncome=s.income>0?s.income-s.oblig:0;
   useEffect(()=>setPage(1),[ftab,q,sort]);
   const isFamily=/Семейная/.test(s.program);
   const minDownPct=/Семейная|IT|Военная/.test(s.program)?20:10;
@@ -425,6 +434,22 @@ function Podbor(){
       </div>`}
       ${s.subsidyOn&&html`<div class="pf-sub">${s.domrf?html`<span class="subsidy-note">${ic.check(14)}Применено: ${s.domrf.label}</span>`:html`<span class="hint" style=${{margin:0}}>Выберите объект или размер снижения ставки по программе ДОМ.РФ</span>`}
         <button class="btn outline sm" onClick=${()=>setModal('domrf')}>${s.domrf?'Изменить условия':'Настроить условия ДОМ.РФ'}</button></div>`}
+      <div class=${'pf-more'+(clOpen?' open':'')}>
+        <button class="pf-more-h" aria-expanded=${clOpen} onClick=${()=>setClOpen(!clOpen)}>
+          <span class="pf-more-t"><b>Клиент и платёжеспособность</b><span>${clOpen?'Точнее покажем ставку и доход, который ждёт банк':clFilled?'Заполнено '+clFilled+' из 4 · '+[s.emp,s.salaryBank!=='Не выбран'&&'зарплата в '+s.salaryBank,s.income>0&&'доход '+rub(s.income)].filter(Boolean).join(' · '):'Возраст, занятость, доход и зарплатный банк — необязательно'}</span></span>
+          <span class="cp-chev">${ic.chev(18)}</span></button>
+        ${clOpen&&html`<div class="pf pf-more-b">
+          <div class="pf-half"><${Field} sm id="f-birth" label="Дата рождения" mask="date" value=${s.birth} onChange=${v=>set({birth:v})}/></div>
+          <div class="pf-half"><${SelectField} sm label="Пол" value=${s.sex} items=${SEXES} onPick=${v=>set({sex:v})}/></div>
+          <${SelectField} sm label="Тип занятости" value=${s.emp} items=${EMPLOYMENTS} onPick=${v=>set({emp:v})}/>
+          <${SelectField} sm label="Подтверждение дохода" value=${s.proof} items=${PROOFS} onPick=${v=>set({proof:v})}/>
+          <${SelectField} sm label="Зарплатный банк" value=${s.salaryBank} items=${['Не выбран',...BANKS.map(b=>b[0])]} onPick=${v=>set({salaryBank:v})}
+            helper=${SALARY_CUT[s.salaryBank]?'−'+String(SALARY_CUT[s.salaryBank]).replace('.',',')+' п.п. учтено в ставке':null}/>
+          <${RangeField} id="f-income" label="Доход в месяц" value=${s.income} min=${0} max=${1000000} step=${5000} onCommit=${v=>set({income:v})}/>
+          <div><${RangeField} id="f-oblig" label=${html`Сумма обязательных платежей <span class="tip" tabindex="0" aria-label="Что входит">${ic.info(14)}<span class="tip-b" role="tooltip">Сумма расходов на аренду жилья, ежемесячные платежи по кредитам, алименты при наличии</span></span>`}
+            value=${s.oblig} min=${0} max=${300000} step=${1000} onCommit=${v=>set({oblig:v})}/></div>
+        </div>`}
+      </div>
     </section>
     <section class="card pad32 stack-24">
       <div class="row"><h1 class="sec">Предложения банков</h1><span class="badge num">${list.length}</span></div>
@@ -445,7 +470,8 @@ function Podbor(){
             <div class="metric"><span>Ставка</span><b class=${calc.cut?'acc':''}>${pct(o.rate)}</b></div>
             <div class="metric"><span>Платёж в месяц</span><b>${rub(o.pay)}</b></div>
             <div class="metric"><span>Рекомендуемый доход</span><b>${rub(o.income)}</b></div>
-          </div>${PERKS[o.name]&&html`<ul class="perks" aria-label="Плюсы банка">${PERKS[o.name].map(t=>html`<li>${ic.badgeCheck(14)}<span>${t}</span></li>`)}</ul>`}</article>`)
+          </div>${PERKS[o.name]&&html`<ul class="perks" aria-label="Плюсы банка">${PERKS[o.name].map(t=>html`<li class=${o.salaryCut&&/зарплат/.test(t)?'on':''}>${ic.badgeCheck(14)}<span>${t}${o.salaryCut&&/зарплат/.test(t)?' · учтено в ставке':''}</span></li>`)}</ul>`}
+          ${freeIncome>0&&freeIncome<o.income&&html`<p class="why-warn">${ic.info(14)}<span>Дохода может не хватить: после обязательных платежей ${rub(freeIncome)}, банк ждёт от ${rub(o.income)}</span></p>`}</article>`)
         :html`<div class="empty">${ftab==='sel'?'Вы ещё не выбрали банки — отметьте их галочкой в списке':'Банк не найден. Проверьте название'}</div>`}</div>
       ${rest>0&&html`<button class="more-btn" onClick=${()=>setPage(page+1)}>Ещё ${Math.min(per,rest)} ${plural(Math.min(per,rest),'предложение','предложения','предложений')}${rest>per?' из '+rest:''}${ic.chev(16)}</button>`}
       ${ftab!=='sel'&&unfit.length>0&&html`<div class="unfit"><div class="row" style=${{gap:'8px'}}><h3 class="bm-h">Не подошли под параметры</h3><span class="badge num">${unfit.length}</span></div>
@@ -1225,7 +1251,7 @@ function Root(){
   const prog=PROGRAMS.find(p=>p.n===f.program);
   const loan=Math.max(0,f.price-f.down-(f.certOn?f.certAmount:0));
   const cut=f.subsidyOn&&f.domrf?f.domrf.cut:0;
-  const offers=useMemo(()=>BANKS.map(([name,ini,d],i)=>{const rate=Math.max(0.1,prog.r+d-cut);const pay=annuity(loan,rate,f.term);return {name,ini,delta:d,rate,pay,income:pay/0.6,commission:(i*7)%11}}),[f.program,loan,f.term,cut]);
+  const offers=useMemo(()=>BANKS.map(([name,ini,d],i)=>{const sc=f.salaryBank===name?SALARY_CUT[name]||0:0;const rate=Math.max(0.1,prog.r+d-cut-sc);const pay=annuity(loan,rate,f.term);return {name,ini,delta:d,rate,pay,income:pay/0.6,salaryCut:sc,commission:(i*7)%11}}),[f.program,loan,f.term,cut,f.salaryBank]);
   const value={psOpen,setPsOpen,termBy,setTermBy,prescore,setPrescore,dealId,co,setCo,f,setF,selected,setSelected,client,setClient,a,setA,files,setFiles,sign,setSign,done,sent,setSent,toast,
     say:setToast,markDone:k=>setDone(o=>({...o,[k]:true})),calc:{loan,cut,offers,termOf:n=>termBy[n]||f.term,payOf:(o,minus=0)=>annuity(loan,o.rate-minus,termBy[o.name]||f.term)},
     sendToBanks:names=>setSent(o=>[...o,...names.filter(n=>!o.some(x=>x.name===n)).map(n=>({name:n,status:'sent',at:nowAt()}))])};
