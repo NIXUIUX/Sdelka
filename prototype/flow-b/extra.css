@@ -522,3 +522,40 @@ body{margin:0}
 .cb.locked{background:var(--color-text-muted)!important;border-color:var(--color-text-muted)!important;cursor:default}
 .sent-tag{height:22px;padding:0 8px;font-size:11px}
 .sw-wrap .helper{margin-left:50px}
+
+/* ── Подбор v2: открытые фильтры без всплывающих окон ── */
+.stack-20{display:flex;flex-direction:column;gap:20px}
+.pf-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.pf-head .ghost-link{flex:none;margin-top:2px}
+.pf{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.1fr) minmax(0,.9fr);gap:12px}
+.pf.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pf .anchor .pop{z-index:40}
+.field.sm{min-height:56px;padding:8px 14px}
+.field.sm .lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.field.sm .val{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.field.sm input{font-size:15px}
+.field.select.sm{padding-right:38px}
+/* слайдер лежит на нижней границе поля */
+.rf{padding-right:14px}
+.rf input:not(.rf-range){padding-right:72px}
+.rf .suffix{bottom:9px;right:14px;display:flex;align-items:baseline;gap:6px;font-size:15px;pointer-events:none}
+.rf-aside{font-size:12px;font-weight:600;color:var(--color-action-primary);background:var(--color-surface-card);border-radius:6px;padding:1px 6px}
+.field.sm.rf:has(input:placeholder-shown):not(:focus-within) .lab{position:static;transform:none;font-size:12px;line-height:18px}
+.rf-range{position:absolute;left:14px;right:14px;bottom:-8px;width:auto;height:16px;margin:0;padding:0;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}
+.rf-range:focus{outline:none}
+.rf-range::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(to right,var(--color-action-primary) var(--p),transparent var(--p))}
+.rf-range::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-7px;border-radius:50%;background:var(--color-action-primary);border:3px solid var(--color-surface-white);box-shadow:0 1px 4px rgba(12,42,208,.35)}
+.rf-range::-moz-range-track{height:2px;background:transparent}
+.rf-range::-moz-range-progress{height:2px;background:var(--color-action-primary)}
+.rf-range::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:var(--color-action-primary);border:3px solid var(--color-surface-white);box-shadow:0 1px 4px rgba(12,42,208,.35)}
+.rf:hover .rf-range::-webkit-slider-thumb,.rf:focus-within .rf-range::-webkit-slider-thumb{transform:scale(1.15)}
+.pf-kids{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px 14px;border-radius:var(--radius-14);background:var(--color-surface-page)}
+.pf-lab{font-size:14px;font-weight:600}
+.pf-seg{display:flex;gap:6px}
+.pf-seg button{width:44px;height:36px}
+.pf-hint{flex-basis:100%}
+.pf-opts{display:flex;flex-wrap:wrap;gap:12px 32px}
+.pf-sub{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:var(--radius-14);background:var(--color-surface-page)}
+.pf-sub .subsidy-note{display:inline-flex;align-items:center;gap:6px;font-size:13px}
+@media(max-width:860px){.pf{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.pf{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense}.pf>*{grid-column:span 2}.pf>.pf-half{grid-column:span 1}.pf.two{grid-template-columns:minmax(0,1fr)}.pf.two>*{grid-column:auto}.pf-head{flex-direction:column;gap:8px}.pf-head .ghost-link{margin:0 0 0 -8px}}

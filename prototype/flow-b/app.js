@@ -114,14 +114,26 @@ function Field({id,label,value,onChange,placeholder,helper,error,disabled,suffix
 function MoneyField({id,label,value,onChange,suffix='₽',error}){
   return html`<${Field} id=${id} label=${label} value=${Math.round(value).toLocaleString('ru-RU')} suffix=${suffix} error=${error} inputMode="numeric" onChange=${v=>onChange(+digits(v)||0)}/>`;
 }
+/* Поле со слайдером по нижней границе: ввод цифрами или перетаскиванием. Значение применяется через полсекунды после остановки, на blur и Enter */
+function RangeField({id,label,value,onCommit,min,max,step=1,unit='money',suffix='₽',aside,map,error}){
+  const [d,setD]=useState(value); useEffect(()=>setD(value),[value]);
+  useEffect(()=>{if(d===value)return;const t=setTimeout(()=>onCommit(d),450);return()=>clearTimeout(t)},[d]);
+  const rv=map?map.to(d):d, p=Math.max(0,Math.min(100,(rv-min)/(max-min)*100));
+  const shown=unit==='money'?Math.round(d).toLocaleString('ru-RU'):String(d);
+  return html`<div><label class=${'field sm rf'+(error?' err':'')} for=${id}><span class="lab">${label}</span>
+    <input id=${id} value=${shown} inputmode="numeric" onInput=${e=>setD(+digits(e.target.value)||0)} onBlur=${()=>{if(d!==value)onCommit(d)}} onKeyDown=${e=>{if(e.key==='Enter')e.target.blur()}}/>
+    <span class="suffix">${typeof suffix==='function'?suffix(d):suffix}${aside!=null&&html`<b class="rf-aside">${typeof aside==='function'?aside(d):aside}</b>`}</span>
+    <input class="rf-range" type="range" tabindex="-1" aria-label=${label} min=${min} max=${max} step=${step} value=${Math.max(min,Math.min(max,rv))} style=${{'--p':p+'%'}} onInput=${e=>setD(map?map.from(+e.target.value):+e.target.value)}/></label>
+    <${FieldError} text=${error}/></div>`;
+}
 function Menu({items,value,onPick}){
   return html`<div class="menu" role="listbox">${items.map(it=>html`<button role="option" aria-selected=${it===value} class=${'mi'+(it===value?' sel':'')} onClick=${()=>onPick(it)}><span>${it}</span>${it===value&&ic.check(16)}</button>`)}</div>`;
 }
-function SelectField({label,value,items,onPick,error,helper}){
+function SelectField({label,value,items,onPick,error,helper,sm}){
   const [open,setOpen]=useState(false); const ref=useRef();
   useOutside(ref,()=>setOpen(false),open);
   return html`<div class="anchor" ref=${ref}>
-    <button class=${'field select'+(error?' err':'')} onClick=${()=>setOpen(!open)} aria-expanded=${open}><span class="lab">${label}</span><span class=${'val'+(String(value).startsWith('Выберите')?' ph':'')}>${value}</span>${ic.chev(18)}</button>
+    <button class=${'field select'+(sm?' sm':'')+(error?' err':'')} onClick=${()=>setOpen(!open)} aria-expanded=${open}><span class="lab">${label}</span><span class=${'val'+(String(value).startsWith('Выберите')?' ph':'')}>${value}</span>${ic.chev(18)}</button>
     ${error?html`<${FieldError} text=${error}/>`:helper&&html`<p class="helper">${helper}</p>`}
     ${open&&html`<div class="pop" style=${{width:'100%',minWidth:'0'}}><${Menu} items=${items} value=${value} onPick=${v=>{onPick(v);setOpen(false)}}/></div>`}
   </div>`;
@@ -346,8 +358,6 @@ function Podbor(){
   const downPct=s.price?Math.round(s.down/s.price*100):0;
   const checkPrice=()=>s.price<500000?'Минимальная стоимость — 500 000 ₽. Проверьте сумму: банки не выдают ипотеку на меньшие объекты':'';
   const checkDown=()=>downPct<minDownPct?`Для программы «${s.program}» взнос от ${minDownPct}% — это ${rub(s.price*minDownPct/100)}. Увеличьте взнос или добавьте сертификат`:'';
-  const applyWith=(key,check)=>{const e=check();setErrs(o=>({...o,[key]:e}));if(!e)setOpen(null)};
-  useEffect(()=>{if(errs.price)setErrs(o=>({...o,price:checkPrice()}));if(errs.down)setErrs(o=>({...o,down:checkDown()}))},[s.price,s.down,s.program]);
   useEffect(()=>{if(selected.size)setNeedBanks(false)},[selected]);
   const goNext=fn=>{if(!selected.size){setNeedBanks(true);return}fn()};
   const fitArgs={term:s.term,loan:calc.loan,downPct:s.price?(s.down+(s.certOn?s.certAmount:0))/s.price*100:0};
@@ -372,53 +382,35 @@ function Podbor(){
   return html`<${AppHeader}/>
   <main class="wrap">
     <${FlowHead} current="podbor"/><div class="layout"><div class="main-col">
-    <section class="card pad32 stack-24">
-      <div class="stack" style=${{gap:'8px'}}><h1 class="sec">Подбор условий</h1><p class="desc" style=${{margin:0}}>Задайте параметры сделки и отметьте банки, в которые отправим заявку</p></div>
-      <div class="chips" style=${{marginTop:0}}>
-        ${P('goal',(o,t)=>html`<${Chip} label="Цель:" value=${s.goal} open=${o} onClick=${t}/>`,html`<div class="pop"><${Menu} items=${GOALS} value=${s.goal} onPick=${v=>{set({goal:v});setOpen(null)}}/></div>`)}
-        ${P('program',(o,t)=>html`<${Chip} label="Программа:" value=${s.program} open=${o} onClick=${t}/>`,html`<div class="pop"><${Menu} items=${PROGRAMS.map(p=>p.n)} value=${s.program} onPick=${v=>{set({program:v});setOpen(v.includes('Семейная')?'kids':null)}}/></div>`)}
-        ${isFamily&&P('kids',(o,t)=>html`<${Chip} label="Дети:" value=${s.kids>=5?'5+':s.kids} open=${o} onClick=${t}/>`,
-          html`<div class="pop form"><h4>Количество детей</h4>
-            <div class="seg">${[1,2,3,4,5].map(k=>html`<button class=${s.kids===k?'on':''} onClick=${()=>set({kids:k})}>${k===5?'5+':k}</button>`)}</div>
-            <${Switch} checked=${s.kidsDisabled} onChange=${v=>set({kidsDisabled:v})} label="Ребёнок с инвалидностью до 18 лет"/>
-            <p class="hint">Хотя бы один ребёнок должен быть младше 7 лет на дату кредитного договора. Для ребёнка с инвалидностью — до 18 лет</p>
-            <button class="btn primary full" onClick=${()=>setOpen(null)}>Применить</button></div>`)}
-        ${P('region',(o,t)=>html`<${Chip} label="Регион:" value=${s.region} open=${o} onClick=${t}/>`,html`<div class="pop"><${Menu} items=${REGIONS} value=${s.region} onPick=${v=>{set({region:v});setOpen(null)}}/></div>`)}
-        ${P('price',(o,t)=>html`<${Chip} label="Стоимость:" value=${rub(s.price)} open=${o} onClick=${t}/>`,
-          html`<div class="pop form"><h4>Стоимость недвижимости</h4>
-            <${MoneyField} id="f-price" label="Стоимость" value=${s.price} error=${errs.price} onChange=${v=>set({price:v,down:Math.min(s.down,v)})}/>
-            <input type="range" aria-label="Стоимость" min="1000000" max="50000000" step="100000" value=${s.price} onInput=${e=>set({price:+e.target.value,down:Math.min(s.down,+e.target.value)})}/>
-            <div class="range-l"><span>1 млн ₽</span><span>50 млн ₽</span></div>
-            <button class="btn primary full" onClick=${()=>applyWith('price',checkPrice)}>Применить</button></div>`)}
-        ${P('down',(o,t)=>html`<${Chip} label="Взнос:" value=${rub(s.down)} open=${o} onClick=${t}/>`,
-          html`<div class="pop form"><h4>Первоначальный взнос</h4>
-            <div class="pair"><${MoneyField} id="f-down" label="ПВ" value=${s.down} error=${!!errs.down} onChange=${v=>set({down:Math.min(v,s.price)})}/>
-              <${MoneyField} id="f-pct" label="Процент" value=${downPct} suffix="%" onChange=${v=>set({down:Math.round(s.price*Math.min(v,100)/100)})}/></div>
-            <input type="range" aria-label="Первоначальный взнос" min="0" max="90" value=${downPct} onInput=${e=>set({down:Math.round(s.price*e.target.value/100)})}/>
-            <div class="range-l"><span>0%</span><span>90%</span></div>
-            <${FieldError} text=${errs.down}/>
-            <p class="hint">Сумма кредита: <b class="num">${rub(calc.loan)}</b> · минимальный взнос ${minDownPct}%</p>
-            <button class="btn primary full" onClick=${()=>applyWith('down',checkDown)}>Применить</button></div>`)}
-        ${P('term',(o,t)=>html`<${Chip} label="Срок:" value=${years(s.term)} open=${o} onClick=${t}/>`,
-          html`<div class="pop form"><div class="row" style=${{justifyContent:'space-between'}}><h4>Срок кредита</h4><b style=${{color:'var(--color-action-primary)'}}>${years(s.term)}</b></div>
-            <input type="range" aria-label="Срок кредита" min="1" max="30" value=${s.term} onInput=${e=>set({term:+e.target.value})}/>
-            <div class="range-l"><span>1 год</span><span>30 лет</span></div>
-            <button class="btn primary full" onClick=${()=>setOpen(null)}>Применить</button></div>`)}
-        ${s.certOn&&html`<${Chip} label="Сертификат:" value=${rub(s.certAmount)} onClick=${()=>setOpen('more')}/>`}
-        ${s.subsidyOn&&s.domrf&&html`<${Chip} label="Субсидия:" value=${'−'+String(s.domrf.cut).replace('.',',')+' п.п.'} onClick=${()=>setModal('domrf')}/>`}
-        ${P('more',(o,t)=>html`<button class=${'ghost-link'+(o?' open':'')} onClick=${t}>${ic.sliders(16)}Больше параметров</button>`,
-          html`<div class="pop form"><h4>Дополнительные параметры</h4>
-            <${Switch} checked=${s.certOn} onChange=${v=>set({certOn:v})} label="Использовать сертификат"/>
-            ${s.certOn&&html`<div class="inset">
-              <${SelectField} label="Тип сертификата" value=${s.certType} items=${CERTS} onPick=${v=>set({certType:v})}/>
-              <${MoneyField} id="f-cert" label="Сумма сертификата" value=${s.certAmount} onChange=${v=>set({certAmount:v})}/>
-              <p class="hint">Добавляется к собственным средствам</p></div>`}
-            <${Switch} checked=${s.subsidyOn} onChange=${v=>set({subsidyOn:v})} label="Учитывать субсидию застройщика"/>
-            ${s.subsidyOn&&html`<button class="btn outline full" onClick=${()=>{setOpen(null);setModal('domrf')}}>Настроить условия ДОМ.РФ</button>`}
-            ${s.subsidyOn&&s.domrf&&html`<p class="subsidy-note">Применено: ${s.domrf.label}</p>`}
-            <button class="btn primary full" onClick=${()=>setOpen(null)}>Применить</button></div>`)}
-        <button class="ghost-link" onClick=${()=>{setF(DEFAULT_FILTERS);setOpen(null);setErrs({});say('Фильтры сброшены')}}>${ic.reset(16)}Сброс фильтров</button>
+    <section class="card pad32 stack-20 pf-card">
+      <div class="pf-head"><div class="stack" style=${{gap:'6px'}}><h1 class="sec">Подбор условий</h1><p class="desc" style=${{margin:0}}>Задайте параметры сделки — предложения банков ниже пересчитываются сразу</p></div>
+        <button class="ghost-link" onClick=${()=>{setF(DEFAULT_FILTERS);say('Параметры сброшены')}}>${ic.reset(16)}Сбросить</button></div>
+      <div class="pf">
+        <${SelectField} sm label="Цель" value=${s.goal} items=${GOALS} onPick=${v=>set({goal:v})}/>
+        <${SelectField} sm label="Программа" value=${s.program} items=${PROGRAMS.map(p=>p.n)} onPick=${v=>set({program:v})}/>
+        <div class="pf-half"><${SelectField} sm label="Регион" value=${s.region} items=${REGIONS} onPick=${v=>set({region:v})}/></div>
+        <${RangeField} id="f-price" label="Стоимость недвижимости" value=${s.price} min=${1000000} max=${50000000} step=${100000} error=${checkPrice()}
+          onCommit=${v=>set({price:v,down:Math.min(s.down,v)})}/>
+        <${RangeField} id="f-down" label="Первоначальный взнос" value=${s.down} min=${0} max=${90} error=${checkDown()}
+          map=${{to:v=>s.price?Math.round(v/s.price*100):0,from:p=>Math.round(s.price*p/100)}} aside=${v=>(s.price?Math.round(v/s.price*100):0)+'%'}
+          onCommit=${v=>set({down:Math.min(v,s.price)})}/>
+        <div class="pf-half"><${RangeField} id="f-term" label="Срок кредита" value=${s.term} unit="years" min=${1} max=${30} suffix=${v=>years(v).replace(/^\d+ /,'')}
+          onCommit=${v=>set({term:Math.max(1,Math.min(30,v||1))})}/></div>
       </div>
+      ${isFamily&&html`<div class="pf-kids"><span class="pf-lab">Детей</span>
+        <div class="seg pf-seg" role="radiogroup" aria-label="Количество детей">${[1,2,3,4,5].map(k=>html`<button role="radio" aria-checked=${s.kids===k} class=${s.kids===k?'on':''} onClick=${()=>set({kids:k})}>${k===5?'5+':k}</button>`)}</div>
+        <${Checkbox} showLabel checked=${s.kidsDisabled} onChange=${v=>set({kidsDisabled:v})} label="Ребёнок с инвалидностью до 18 лет"/>
+        <p class="hint pf-hint">Хотя бы один ребёнок младше 7 лет на дату кредитного договора, с инвалидностью — до 18 лет</p></div>`}
+      <div class="pf-opts">
+        <${Switch} checked=${s.certOn} onChange=${v=>set({certOn:v})} label="Сертификат или маткапитал"/>
+        <${Switch} checked=${s.subsidyOn} onChange=${v=>set({subsidyOn:v})} label="Субсидия застройщика"/>
+      </div>
+      ${s.certOn&&html`<div class="pf two">
+        <${SelectField} sm label="Тип сертификата" value=${s.certType} items=${CERTS} onPick=${v=>set({certType:v})}/>
+        <${RangeField} id="f-cert" label="Сумма сертификата · к собственным средствам" value=${s.certAmount} min=${0} max=${3000000} step=${10000} onCommit=${v=>set({certAmount:v})}/>
+      </div>`}
+      ${s.subsidyOn&&html`<div class="pf-sub">${s.domrf?html`<span class="subsidy-note">${ic.check(14)}Применено: ${s.domrf.label}</span>`:html`<span class="hint" style=${{margin:0}}>Выберите объект или размер снижения ставки по программе ДОМ.РФ</span>`}
+        <button class="btn outline sm" onClick=${()=>setModal('domrf')}>${s.domrf?'Изменить условия':'Настроить условия ДОМ.РФ'}</button></div>`}
     </section>
     <section class="card pad32 stack-24">
       <div class="row"><h1 class="sec">Предложения банков</h1><span class="badge num">${list.length}</span></div>
