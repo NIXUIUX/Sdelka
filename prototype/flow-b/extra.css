@@ -559,3 +559,7 @@ body{margin:0}
 .pf-sub .subsidy-note{display:inline-flex;align-items:center;gap:6px;font-size:13px}
 @media(max-width:860px){.pf{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.pf{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense}.pf>*{grid-column:span 2}.pf>.pf-half{grid-column:span 1}.pf.two{grid-template-columns:minmax(0,1fr)}.pf.two>*{grid-column:auto}.pf-head{flex-direction:column;gap:8px}.pf-head .ghost-link{margin:0 0 0 -8px}}
+/* Прескоринг: проверенный участник в форме и добавление после результата */
+.ps-done{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius-16);background:var(--color-surface-page)}
+.ps-done-t{flex:1;display:flex;flex-direction:column;min-width:0}.ps-done-t b{font-size:15px}.ps-done-t span{font-size:13px;color:var(--color-text-secondary)}
+.ps-add{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}

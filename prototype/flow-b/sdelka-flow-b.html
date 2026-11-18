@@ -738,6 +738,10 @@ body{margin:0}
 .pf-sub .subsidy-note{display:inline-flex;align-items:center;gap:6px;font-size:13px}
 @media(max-width:860px){.pf{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.pf{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense}.pf>*{grid-column:span 2}.pf>.pf-half{grid-column:span 1}.pf.two{grid-template-columns:minmax(0,1fr)}.pf.two>*{grid-column:auto}.pf-head{flex-direction:column;gap:8px}.pf-head .ghost-link{margin:0 0 0 -8px}}
+/* Прескоринг: проверенный участник в форме и добавление после результата */
+.ps-done{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius-16);background:var(--color-surface-page)}
+.ps-done-t{flex:1;display:flex;flex-direction:column;min-width:0}.ps-done-t b{font-size:15px}.ps-done-t span{font-size:13px;color:var(--color-text-secondary)}
+.ps-add{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
 </style>
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1300,15 +1304,22 @@ function PrescoreModal({onClose}){
   const [ppl,setPpl]=useState(init);
   const [errs,setErrs]=useState({});
   const upd=i=>(patch,k)=>{setPpl(o=>o.map((p,j)=>j===i?{...p,...patch}:p));if(k)setErrs(o=>({...o,[k+i]:''}))};
-  const addCo=()=>{if(ppl.length>=4){say('В заявке может быть до 4 участников');return}setPpl(o=>[...o,{pid:'c'+Date.now(),name:'',phone:'',docs:[],agree:false,isNew:true}])};
-  const run=()=>{const e={};ppl.forEach((p,i)=>{
+  const blank=()=>({pid:'c'+Date.now(),name:'',phone:'',docs:[],agree:false,isNew:true});
+  const done=p=>p.score!=null;
+  const addCo=()=>{if(ppl.length>=4){say('В заявке может быть до 4 участников');return}setPpl(o=>[...o,blank()])};
+  /* из результата: проверенные остаются как есть, добавляется пустая карточка нового участника */
+  const addMore=()=>{if(r.people.length>=4){say('В заявке может быть до 4 участников');return}setPpl([...r.people,blank()]);setErrs({});setPhase('form')};
+  /* «Пересчитать» — заново запрашиваем всех */
+  const recheck=()=>{setPpl(o=>o.map(({score,report,checks,...p})=>p));setErrs({});setPhase('form')};
+  const fresh=ppl.filter(p=>!done(p)).length;
+  const run=()=>{const e={};ppl.forEach((p,i)=>{if(done(p))return;
       if(p.phone.replace(/\D/g,'').length<11)e['phone'+i]='Введите номер полностью';
       if(!p.docs.length)e['docs'+i]='Загрузите разворот паспорта с фото';
       if(!p.agree)e['agree'+i]='Нужно согласие на запрос в БКИ'});
     setErrs(e);if(Object.values(e).some(Boolean)){setTimeout(()=>{const el=document.querySelector('.modal .err,.modal .err-text');el&&el.scrollIntoView({block:'center',behavior:'smooth'})},30);return}
     setPhase('loading');
-    setTimeout(()=>{const total=calc.offers.length;let ci=0;
-      const people=ppl.map((p,i)=>{if(i===0){const rep=psReport('ok');return {...p,name:p.name||PASSPORT_DATA.fio,score:902,report:rep,checks:psFlags(rep)}}
+    setTimeout(()=>{const total=calc.offers.length;let ci=ppl.slice(1).filter(done).length;
+      const people=ppl.map((p,i)=>{if(done(p))return p;if(i===0){const rep=psReport('ok');return {...p,name:p.name||PASSPORT_DATA.fio,score:902,report:rep,checks:psFlags(rep)}}
         const d=CO_DEMO[ci++%CO_DEMO.length];const rep=psReport(d[2]);return {...p,name:p.name||d[0],score:d[1],report:rep,checks:psFlags(rep)}});
       const minS=Math.min(...people.map(p=>p.score));
       setPrescore({people,score:people[0].score,banks:Math.round(total*(minS>=861?0.8:minS>=633?0.6:0.25)),total,date:new Date().toLocaleDateString('ru-RU')});
@@ -1322,16 +1333,21 @@ function PrescoreModal({onClose}){
   const r=prescore;
   return html`<${ModalShell} wide=${phase==='result'} title="Прескоринг участников" sub=${phase==='result'?'Предварительная оценка по данным БКИ от '+r.date:'Предварительная оценка по данным бюро кредитных историй. На заявку в банк не влияет'} onClose=${onClose}>
     ${phase==='form'&&html`<div class="stack">
-      ${ppl.map((p,i)=>html`<${PsPerson} key=${p.pid} p=${p} i=${i} errs=${errs} upd=${upd(i)} del=${()=>{setPpl(o=>o.filter((_,j)=>j!==i));setErrs({})}}/>`)}
-      ${ppl.length<4&&html`<div><button class="btn outline s" onClick=${addCo}>${ic.plus(16)} Добавить созаёмщика</button></div>`}
+      ${ppl.some(done)&&html`<p class="hint" style=${{margin:0}}>Проверенных участников заново не запрашиваем — бюро проверит только новых</p>`}
+      ${ppl.map((p,i)=>done(p)?html`<div class="ps-done" key=${p.pid}><span class="avatar">${initials(p.name)}</span>
+          <div class="ps-done-t"><b>${p.name}</b><span>${i===0?'Заёмщик':'Созаёмщик'} · проверен ${r?r.date:''}</span></div>
+          <span class=${'badge '+(p.score>=861?'success':p.score>=633?'':'warning')}>${p.score}</span></div>`
+        :html`<${PsPerson} key=${p.pid} p=${p} i=${i} errs=${errs} upd=${upd(i)} del=${()=>{setPpl(o=>o.filter((_,j)=>j!==i));setErrs({})}}/>`)}
+      ${ppl.length<4&&html`<div><button class="btn outline s" onClick=${addCo}>${ic.plus(16)} Добавить созаёмщика</button> <span class="hint">можно ещё ${4-ppl.length}, всего до 4 участников</span></div>`}
     </div>
-    <div class="modal-act"><button class="btn outline" onClick=${onClose}>Отмена</button><button class="btn primary" onClick=${run}>${ppl.length>1?'Рассчитать для '+ppl.length+' участников':'Рассчитать рейтинг'}</button></div>`}
+    <div class="modal-act"><button class="btn outline" onClick=${()=>r&&ppl.some(done)?setPhase('result'):onClose()}>${r&&ppl.some(done)?'Назад к результату':'Отмена'}</button><button class="btn primary" disabled=${!fresh} onClick=${run}>${ppl.some(done)?(fresh>1?'Проверить '+fresh+' новых участников':'Проверить нового участника'):ppl.length>1?'Рассчитать для '+ppl.length+' участников':'Рассчитать рейтинг'}</button></div>`}
     ${phase==='loading'&&html`<div class="ps-load"><span class="spinner"></span><b>Запрашиваем кредитную историю</b><span class="desc">Обычно это занимает несколько секунд</span></div>`}
     ${phase==='result'&&html`<div class="stack">
       ${r.people.map((p,i)=>html`<${PsResult} key=${p.pid} p=${p} i=${i}/>`)}
+      ${r.people.length<4&&html`<div class="ps-add"><button class="btn outline s" onClick=${addMore}>${ic.plus(16)} Добавить созаёмщика</button><span class="hint">Можно ещё ${4-r.people.length} — проверим только нового, остальные результаты сохранятся</span></div>`}
       <div class="ps-reco">${r.people.length>1?'С учётом всех участников — ':''}${(m=>m>=861?'высокая':m>=633?'хорошая':'низкая')(Math.min(...r.people.map(p=>p.score)))} вероятность одобрения в ${r.banks} из ${r.total} банков подборки</div>
     </div>
-    <div class="modal-act"><button class="btn outline" style=${{marginRight:'auto'}} disabled=${pdfBusy} onClick=${downloadPdf}>${pdfBusy?html`<span class="spinner sm"></span>Готовим PDF`:html`${ic.download(16)}PDF для клиента`}</button><button class="btn outline" onClick=${()=>setPhase('form')}>Пересчитать</button><button class="btn primary" onClick=${()=>{onClose();say(r.people.length>1?'Рейтинг участников сохранён в заявке':'Рейтинг сохранён в заявке')}}>Готово</button></div>`}
+    <div class="modal-act"><button class="btn outline" style=${{marginRight:'auto'}} disabled=${pdfBusy} onClick=${downloadPdf}>${pdfBusy?html`<span class="spinner sm"></span>Готовим PDF`:html`${ic.download(16)}PDF для клиента`}</button><button class="btn outline" onClick=${recheck}>Пересчитать всех</button><button class="btn primary" onClick=${()=>{onClose();say(r.people.length>1?'Рейтинг участников сохранён в заявке':'Рейтинг сохранён в заявке')}}>Готово</button></div>`}
   <//>`;
 }
 /* Карточка банка из списка предложений. Значения — демо, детерминированы от позиции банка */
