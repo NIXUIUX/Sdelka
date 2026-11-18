@@ -1361,7 +1361,7 @@ function PrescoreModal({onClose}){
           <div class="ps-done-t"><b>${p.name}</b><span>${i===0?'Заёмщик':'Созаёмщик'} · проверен ${r?r.date:''}</span></div>
           <span class=${'badge '+(p.score>=861?'success':p.score>=633?'':'warning')}>${p.score}</span></div>`
         :html`<${PsPerson} key=${p.pid} p=${p} i=${i} errs=${errs} upd=${upd(i)} del=${()=>{setPpl(o=>o.filter((_,j)=>j!==i));setErrs({})}}/>`)}
-      ${ppl.length<4&&html`<div><button class="btn outline s" onClick=${addCo}>${ic.plus(16)} Добавить созаёмщика</button> <span class="hint">можно ещё ${4-ppl.length}, всего до 4 участников</span></div>`}
+      ${ppl.length<4&&html`<div class="ps-add"><button class="btn outline s" onClick=${addCo}>${ic.plus(16)} Добавить созаёмщика</button><span class="hint">можно ещё ${4-ppl.length}, всего до 4 участников</span></div>`}
     </div>
     <div class="modal-act"><button class="btn outline" onClick=${()=>r&&ppl.some(done)?setPhase('result'):onClose()}>${r&&ppl.some(done)?'Назад к результату':'Отмена'}</button><button class="btn primary" disabled=${!fresh} onClick=${run}>${ppl.some(done)?(fresh>1?'Проверить '+fresh+' новых участников':'Проверить нового участника'):ppl.length>1?'Рассчитать для '+ppl.length+' участников':'Рассчитать рейтинг'}</button></div>`}
     ${phase==='loading'&&html`<div class="ps-load"><span class="spinner"></span><b>Запрашиваем кредитную историю</b><span class="desc">Обычно это занимает несколько секунд</span></div>`}
