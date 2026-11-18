@@ -304,7 +304,7 @@ function FlowHead({current,steps,inParts}){
   const {psOpen:pm,setPsOpen:setPm}=useApp();
   return html`<div class="flow-head">
     <a class="link back" href="#" onClick=${e=>{e.preventDefault();go('')}}>${ic.chevL(16)} Ипотечные заявки</a>
-    <div class="flow-row"><div class="flow-title"><h1>Заявка № ${dealId}</h1><span class="desc">Шаг ${idx+1} из ${STEPS.length} · ${STEPS[idx][1]}</span></div>
+    <div class="flow-row"><div class="flow-title"><h1>Заявка № ${dealId}</h1></div>
       ${inParts?null:prescore?html`<button class="score-pill" onClick=${()=>setPm(true)} title="Открыть результат прескоринга">${ic.gauge(16)}<span>Кредитный рейтинг</span><b>${prescore.score}</b><span class=${'lvl '+scoreLvl(prescore.score)[1]}>${scoreLvl(prescore.score)[0]}</span>${prescore.people.length>1&&html`<span class="more">+${prescore.people.length-1}</span>`}</button>`
         :html`<button class="btn outline sm" onClick=${()=>setPm(true)}>${ic.gauge(16)}Прескоринг</button>`}</div>
     ${pm&&html`<${PrescoreModal} onClose=${()=>setPm(false)}/>`}
@@ -318,7 +318,7 @@ function AnketaPage({step,children,onNext,extraSide,alert,primary='Продол�
   return html`<${AppHeader}/><main class="wrap"><${FlowHead} current=${step} inParts=${step!=='signing'}/><div class="layout">
     <div class="main-col">${step!=='signing'&&html`<${Participants}/>`}<section class="card pad32 stack-24 anketa">${children}</section></div>
     <aside class="side"><${CreditParams}/>${extraSide}<${StepsNav} current=${step}/><${HelpCard}/></aside></div></main>
-    <${BottomBar} alert=${alert} left=${html`Шаг ${idx+1} из ${STEPS.length} · ${STEPS[idx][1]}`} secondary=${back[0]} onSecondary=${()=>go(back[1])} primary=${primary} onPrimary=${onNext}/>`;
+    <${BottomBar} alert=${alert} secondary=${back[0]} onSecondary=${()=>go(back[1])} primary=${primary} onPrimary=${onNext}/>`;
 }
 /* run validation; returns true if ok */
 /* Якорь к первому полю с ошибкой: скроллим к самому верхнему и ставим в него фокус */
@@ -458,7 +458,6 @@ function Podbor(){
   </main>
   <${BottomBar}
     alert=${needBanks&&html`<${Alert} type="warning" title="Сначала выберите банки">Отметьте галочкой хотя бы один банк в списке — так мы поймём, кому отправить предложение и анкету клиента<//>`}
-    left=${html`Шаг 1 из ${STEPS.length} · ${STEPS[0][1]}`}
     secondary="Отправить предложение на почту" onSecondary=${()=>goNext(()=>setModal('offer'))}
     primary="Продолжить" onPrimary=${()=>goNext(()=>{app.markDone('podbor');go('personal')})}/>
   ${modal==='domrf'&&html`<${DomrfModal} initial=${s.domrf} onClose=${()=>setModal(null)} onApply=${d=>{set({domrf:d,subsidyOn:true});setModal(null);say('Условия ДОМ.РФ применены')}}/>`}
