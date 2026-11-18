@@ -115,7 +115,10 @@ function MoneyField({id,label,value,onChange,suffix='₽',error}){
   return html`<${Field} id=${id} label=${label} value=${Math.round(value).toLocaleString('ru-RU')} suffix=${suffix} error=${error} inputMode="numeric" onChange=${v=>onChange(+digits(v)||0)}/>`;
 }
 /* Поле со слайдером по нижней границе: ввод цифрами или перетаскиванием. Значение применяется через полсекунды после остановки, на blur и Enter */
-function RangeField({id,label,value,onCommit,min,max,step=1,unit='money',suffix='₽',aside,map,error}){
+/* Быстрый выбор первого взноса: на 0,1 п.п. выше порогов банков, чтобы не упереться в границу 20 / 30 / 40 / 50% */
+const DOWN_PICKS=[20.1,30.1,40.1,50.1];
+const pctStr=p=>(Math.round(p*10)/10).toLocaleString('ru-RU')+'%';
+function RangeField({id,label,value,onCommit,min,max,step=1,unit='money',suffix='₽',aside,map,error,below}){
   const [d,setD]=useState(value); useEffect(()=>setD(value),[value]);
   useEffect(()=>{if(d===value)return;const t=setTimeout(()=>onCommit(d),450);return()=>clearTimeout(t)},[d]);
   const rv=map?map.to(d):d, p=Math.max(0,Math.min(100,(rv-min)/(max-min)*100));
@@ -124,7 +127,7 @@ function RangeField({id,label,value,onCommit,min,max,step=1,unit='money',suffix=
     <input id=${id} value=${shown} inputmode="numeric" onInput=${e=>setD(+digits(e.target.value)||0)} onBlur=${()=>{if(d!==value)onCommit(d)}} onKeyDown=${e=>{if(e.key==='Enter')e.target.blur()}}/>
     <span class="suffix">${typeof suffix==='function'?suffix(d):suffix}${aside!=null&&html`<b class="rf-aside">${typeof aside==='function'?aside(d):aside}</b>`}</span>
     <input class="rf-range" type="range" tabindex="-1" aria-label=${label} min=${min} max=${max} step=${step} value=${Math.max(min,Math.min(max,rv))} style=${{'--p':p+'%'}} onInput=${e=>setD(map?map.from(+e.target.value):+e.target.value)}/></label>
-    <${FieldError} text=${error}/></div>`;
+    ${below&&below(d,v=>{setD(v);onCommit(v)})}<${FieldError} text=${error}/></div>`;
 }
 function Menu({items,value,onPick}){
   return html`<div class="menu" role="listbox">${items.map(it=>html`<button role="option" aria-selected=${it===value} class=${'mi'+(it===value?' sel':'')} onClick=${()=>onPick(it)}><span>${it}</span>${it===value&&ic.check(16)}</button>`)}</div>`;
@@ -392,7 +395,9 @@ function Podbor(){
         <${RangeField} id="f-price" label="Стоимость недвижимости" value=${s.price} min=${1000000} max=${50000000} step=${100000} error=${checkPrice()}
           onCommit=${v=>set({price:v,down:Math.min(s.down,v)})}/>
         <${RangeField} id="f-down" label="Первоначальный взнос" value=${s.down} min=${0} max=${90} error=${checkDown()}
-          map=${{to:v=>s.price?Math.round(v/s.price*100):0,from:p=>Math.round(s.price*p/100)}} aside=${v=>(s.price?Math.round(v/s.price*100):0)+'%'}
+          map=${{to:v=>s.price?v/s.price*100:0,from:p=>Math.round(s.price*p/100)}} aside=${v=>pctStr(s.price?v/s.price*100:0)}
+          below=${(v,pick)=>html`<div class="qchips" role="group" aria-label="Быстрый выбор взноса">${DOWN_PICKS.map(q=>{const on=s.price&&Math.abs(v/s.price*100-q)<0.05;
+            return html`<button class=${'qchip'+(on?' on':'')} aria-pressed=${!!on} onClick=${()=>pick(Math.round(s.price*q/100))}>${pctStr(q)}</button>`})}</div>`}
           onCommit=${v=>set({down:Math.min(v,s.price)})}/>
         <div class="pf-half"><${RangeField} id="f-term" label="Срок кредита" value=${s.term} unit="years" min=${1} max=${30} suffix=${v=>years(v).replace(/^\d+ /,'')}
           onCommit=${v=>set({term:Math.max(1,Math.min(30,v||1))})}/></div>
