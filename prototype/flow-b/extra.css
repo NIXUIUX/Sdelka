@@ -657,3 +657,13 @@ body{margin:0}
 .sp-dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 16px;margin:0}
 .sp-i{display:flex;flex-direction:column;min-width:0}.sp-i span{font-size:12px;color:var(--color-text-secondary)}.sp-i b{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:640px){.sp-dl{grid-template-columns:repeat(2,minmax(0,1fr))}.who-bar{flex-wrap:wrap}}
+/* Множественный выбор почт в одном поле */
+.field.ms .val{display:flex;align-items:center;gap:6px;min-width:0}
+.ms-more{flex:none;font-size:12px;font-weight:600;color:var(--color-action-primary);background:var(--color-surface-card);border-radius:6px;padding:1px 6px}
+.ms-pop{padding:6px}
+.ms-i{justify-content:flex-start;align-items:flex-start;gap:10px}
+.ms-i .cb{flex:none;margin-top:1px}
+.ms-t{display:flex;flex-direction:column;min-width:0}.ms-t span{overflow:hidden;text-overflow:ellipsis}.ms-t small{font-size:12px;color:var(--color-text-secondary)}
+.ms-i.sel{background:var(--color-surface-card)}
+.ms-note{display:flex;gap:6px;margin:6px 4px 2px;padding:8px 10px;border-radius:10px;background:var(--color-surface-page);font-size:12px;line-height:16px;color:var(--color-text-secondary)}
+.ms-note svg{flex:none;margin-top:1px}

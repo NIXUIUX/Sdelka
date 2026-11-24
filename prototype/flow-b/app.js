@@ -148,6 +148,24 @@ function RangeField({id,label,value,onCommit,min,max,step=1,unit='money',suffix=
 function Menu({items,value,onPick}){
   return html`<div class="menu" role="listbox">${items.map(it=>html`<button role="option" aria-selected=${it===value} class=${'mi'+(it===value?' sel':'')} onClick=${()=>onPick(it)}><span>${it}</span>${it===value&&ic.check(16)}</button>`)}</div>`;
 }
+/* Почты получателей анкеты в банке (демо). Реальный список зависит от настроек пользователя и подразделения банка */
+const TR={а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'ts',ч:'ch',ш:'sh',щ:'sch',ы:'y',э:'e',ю:'yu',я:'ya'};
+const bankSlug=n=>n.toLowerCase().replace(/банк/g,'').split('').map(c=>TR[c]??c).join('').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'bank';
+const mailsOf=n=>[['mortgage','Ипотечный отдел'],['partners','Партнёрский канал'],['regional','Региональный менеджер']].map(([u,d])=>({value:`${u}@${bankSlug(n)}.example.com`,label:`${u}@${bankSlug(n)}.example.com`,desc:d}));
+/* Поле с множественным выбором: одно поле, список с галочками, выбор не закрывает список */
+function MultiSelectField({label,options,value,onChange,error,helper,placeholder='Выберите',note}){
+  const [open,setOpen]=useState(false); const ref=useRef(); useOutside(ref,()=>setOpen(false),open);
+  const toggle=v=>onChange(value.includes(v)?value.filter(x=>x!==v):[...value,v]);
+  const shown=value.length?value[0]+(value.length>1?' ':''):placeholder;
+  return html`<div class="anchor" ref=${ref}>
+    <button class=${'field select ms'+(error?' err':'')} onClick=${()=>setOpen(!open)} aria-expanded=${open} aria-haspopup="listbox"><span class="lab">${label}</span>
+      <span class=${'val'+(value.length?'':' ph')}>${shown}${value.length>1&&html`<b class="ms-more">+${value.length-1}</b>`}</span>${ic.chev(18)}</button>
+    ${error?html`<${FieldError} text=${error}/>`:helper&&html`<p class="helper">${helper}</p>`}
+    ${open&&html`<div class="pop ms-pop" style=${{width:'100%',minWidth:'0'}}><div class="menu" role="listbox" aria-multiselectable="true">${options.map(o=>{const on=value.includes(o.value);
+        return html`<button role="option" aria-selected=${on} class=${'mi ms-i'+(on?' sel':'')} onClick=${()=>toggle(o.value)}><span class=${'cb'+(on?' on':'')}>${on&&ic.check(14)}</span><span class="ms-t"><span>${o.label}</span>${o.desc&&html`<small>${o.desc}</small>`}</span></button>`})}</div>
+      ${note&&html`<p class="ms-note">${ic.info(14)}<span>${note}</span></p>`}</div>`}
+  </div>`;
+}
 function SelectField({label,value,items,onPick,error,helper,sm}){
   const [open,setOpen]=useState(false); const ref=useRef();
   useOutside(ref,()=>setOpen(false),open);
@@ -1146,7 +1164,9 @@ function Signing(){
   const sendSms=()=>{setS({status:'sent'});say('Ссылка отправлена на +7 (900) 123-45-67');setTimeout(()=>{setSign(o=>o.status==='sent'?{...o,status:'signed'}:o)},2500)};
   const confirmPaper=()=>{if(v.run({paper:!sign.paperFiles.length?'Загрузите сканы подписанных анкеты и согласия — без них банк не примет заявку':''})){setS({status:'signed'});say('Комплект подтверждён')}};
   const signScreen=()=>{if(v.run({agree:!sign.agree?'Отметьте, что клиент ознакомился с документами — это обязательное условие банка':'',drawn:!sign.drawn?'Нужна подпись клиента в поле ниже':''})){setS({status:'signed'});say('Документы подписаны')}};
-  const toBanks=()=>{if(!app.sber&&sign.status!=='signed'){setNeedSign(true);return}if(app.sent.length&&banks.every(n=>app.sent.some(x=>x.name===n))){say('Во все выбранные банки заявка уже отправлена — отметьте новый банк на шаге подбора');return}markDone('signing');app.sendToBanks(banks);if(app.sber)say('Заявка отправлена в Сбербанк');go('status')};
+  const [mailErr,setMailErr]=useState({});
+  const toBanks=()=>{const me={};banks.forEach(n=>{if(!app.recipsOf(n).length)me[n]='Выберите хотя бы одну почту — без неё анкета не уйдёт в банк'});setMailErr(me);if(Object.keys(me).length){toFirstErr();return}
+    if(!app.sber&&sign.status!=='signed'){setNeedSign(true);return}if(app.sent.length&&banks.every(n=>app.sent.some(x=>x.name===n))){say('Во все выбранные банки заявка уже отправлена — отметьте новый банк на шаге подбора');return}markDone('signing');app.sendToBanks(banks);if(app.sber)say('Заявка отправлена в Сбербанк');go('status')};
   if(app.sber)return html`<${SberSend} onSend=${toBanks}/>`;
   const docs=[...files.passport,...files.snils,{name:'Выписка СФР о доходах.pdf',size:'0,9 МБ'},{name:'Трудовая книжка.pdf',size:'1,2 МБ'}];
   const statusBadge=sign.status==='signed'?html`<${Badge} tone="success">Подписано<//>`:sign.status==='sent'?html`<${Badge} tone="accent">Ссылка отправлена<//>`:html`<span class="badge" style=${{background:'var(--color-warning-bg)',color:'var(--color-warning-text)'}}><span class="dot"></span>Не подписано</span>`;
@@ -1167,6 +1187,9 @@ function Signing(){
             ${x.filled?html`<${Badge} tone="success">Анкета заполнена<//>`:html`<button class="btn outline s" onClick=${()=>app.switchTo(p.id,'personal')||go('personal')}>Заполнить анкету</button>`}</div>
           ${x.filled&&html`<div class="sp-dl num">${rows.filter(r=>r[1]).map(([k,v])=>html`<div class="sp-i"><span>${k}</span><b>${v}</b></div>`)}</div>`}</div>`})}</div></div>
     <div class="stack"><h1 class="sec">Документы</h1><div class="grid g2">${docs.map(d=>html`<${FileItem} f=${d}/>`)}</div></div>
+    <div class="stack"><h1 class="sec">Получатели в банках</h1><p class="desc">На какие почты банка отправить анкету — можно выбрать несколько</p>
+      <div class="grid g2">${banks.map(n=>html`<${MultiSelectField} key=${n} label=${n} options=${mailsOf(n)} value=${app.recipsOf(n)} error=${mailErr[n]}
+        onChange=${v=>{app.setRecipsOf(n,v);setMailErr(o=>({...o,[n]:''}))}} note="Доступные адреса получателей определяются настройками пользователя и подразделения банка"/>`)}</div></div>
     <div class="stack"><h1 class="sec">Способ подписания</h1><p class="desc">Каждый участник выбирает удобный способ подписания анкеты и согласия</p>
       <div class="participant">
         <div class="p-head"><span class="avatar">ИИ</span><div class="tx"><h3>${a.fio||'Заёмщик'}</h3><small>Заёмщик · анкета и согласие</small></div>${statusBadge}</div>
@@ -1214,7 +1237,7 @@ function ApprovedParams({b,o,onSave}){
   </div>`;
 }
 function Status(){
-  const {sent,setSent,calc,f,say,setSelected}=useApp();
+  const app=useApp(); const {sent,setSent,calc,f,say,setSelected}=app;
   const list=sent.length?sent:[{name:'Абсолют Банк',status:'sent'},{name:'Уралсиб',status:'sent'}];
   const [cur,setCur]=useState(list[0].name); const [openMail,setOpenMail]=useState(true); const [ans,setAns]=useState(false);
   const [exp,setExp]=useState(null); const [compose,setCompose]=useState(false); const [mails,setMails]=useState({}); const [draft,setDraft]=useState('');
@@ -1246,14 +1269,14 @@ function Status(){
         <div class="stack"><div class="row" style=${{justifyContent:'space-between'}}><div class="row" style=${{gap:'8px'}}><span style=${{color:'var(--color-action-primary)'}}>${ic.msg(20)}</span><h3>Переписка с банком</h3></div>
             ${!compose&&html`<button class="link" style=${{display:'inline-flex',alignItems:'center',gap:'6px'}} onClick=${()=>setCompose(true)}>${ic.msg(16)} Написать письмо</button>`}</div>
           ${compose&&html`<div class="compose">
-            <p class="desc" style=${{fontSize:'13px',margin:0}}><b style=${{color:'var(--color-text-primary)'}}>Кому:</b> ${b.name} · mortgage@example.com<br/><b style=${{color:'var(--color-text-primary)'}}>Тема:</b> Re: Новая заявка на ипотеку № 036968-58791</p>
+            <p class="desc" style=${{fontSize:'13px',margin:0}}><b style=${{color:'var(--color-text-primary)'}}>Кому:</b> ${b.name} · ${app.recipsOf(b.name).join(', ')}<br/><b style=${{color:'var(--color-text-primary)'}}>Тема:</b> Re: Новая заявка на ипотеку № 036968-58791</p>
             <label class="field ta" for="mail-text"><span class="lab">Текст письма</span><textarea id="mail-text" rows="4" placeholder="Например: направляем дополнительные документы по заявке" value=${draft} onInput=${e=>setDraft(e.target.value)}></textarea></label>
             <div class="row-btns"><button class="btn outline s" onClick=${()=>{setCompose(false);setDraft('')}}>Отмена</button><button class="btn primary s" onClick=${sendMail}>${ic.send(16)} Отправить</button></div></div>`}
           ${myMails.slice().reverse().map(m=>html`<div class="mail"><div class="row" style=${{flexWrap:'nowrap'}}><span class="icon-tile">${ic.send(18)}</span><div style=${{flex:1}}><b style=${{fontSize:'14px'}}>Письмо в банк</b><div class="desc" style=${{fontSize:'12px'}}>Дмитрий Сорокин</div></div><span class="desc" style=${{fontSize:'12px'}}>${m.t}</span></div>
             <div class="mail-body"><p style=${{whiteSpace:'pre-wrap'}}>${m.text}</p></div></div>`)}
           <div class="mail"><button class="row" style=${{flexWrap:'nowrap',width:'100%',textAlign:'left'}} onClick=${()=>setOpenMail(!openMail)} aria-expanded=${openMail}>
               <span class="icon-tile">${ic.send(18)}</span><div style=${{flex:1}}><b style=${{fontSize:'14px'}}>Письмо с заявкой</b><div class="desc" style=${{fontSize:'12px'}}>Исходный пакет и направленные условия</div></div><span class="desc" style=${{fontSize:'12px'}}>${fmtAt(b.at).split(', ')[1]}</span><span class=${'cp-chev'+(openMail?' up':'')}>${ic.chev(18)}</span></button>
-            ${openMail&&html`<div class="mail-body"><p><b>Получатели:</b> mortgage@example.com</p><p><b>Тема:</b> Новая заявка на ипотеку № 036968-58791</p>
+            ${openMail&&html`<div class="mail-body"><p><b>Получатели:</b> ${app.recipsOf(b.name).join(', ')}</p><p><b>Тема:</b> Новая заявка на ипотеку № 036968-58791</p>
               <${Alert} type="warning" title="Не меняйте тему письма и отвечайте через «Ответить всем»">Так ответ банка не потеряется и мы быстрее его обработаем<//>
               <p>Добрый день! Просим рассмотреть новую заявку на ипотеку № 036968-58791 и отправить результат рассмотрения ответным письмом. Документы по заявке во вложении</p>
               <p class="desc">С уважением, ООО «Сделка.РФ», Дмитрий Сорокин, +7 900 000-00-00</p></div>
@@ -1321,13 +1344,15 @@ function Root(){
   const [termBy,setTermBy]=useState({});
   /* первый взнос, изменённый для отдельного банка */
   const [downBy,setDownBy]=useState({});
+  /* выбранные почты получателей анкеты по банкам; по умолчанию — ипотечный отдел */
+  const [recips,setRecips]=useState({});
   const dealId=useMemo(()=>Math.max(...DEALS0.map(d=>d.id))+1,[]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),2800);return()=>clearTimeout(t)},[toast]);
   const prog=PROGRAMS.find(p=>p.n===f.program);
   const loan=Math.max(0,f.price-f.down-(f.certOn?f.certAmount:0));
   const cut=f.subsidyOn&&f.domrf?f.domrf.cut:0;
   const offers=useMemo(()=>BANKS.map(([name,ini,d],i)=>{const sc=f.salaryBank===name?SALARY_CUT[name]||0:0;const rate=Math.max(0.1,prog.r+d-cut-sc);const pay=annuity(loan,rate,f.term);return {name,ini,delta:d,rate,pay,income:pay/0.6,salaryCut:sc,commission:(i*7)%11}}),[f.program,loan,f.term,cut,f.salaryBank]);
-  const value={psOpen,setPsOpen,termBy,setTermBy,downBy,setDownBy,prescore,setPrescore,dealId,co,setCo,f,setF,selected,setSelected,client,setClient,a,setA,files,setFiles,sign,setSign,done,sent,setSent,toast,
+  const value={psOpen,setPsOpen,termBy,setTermBy,downBy,setDownBy,recipsOf:n=>recips[n]||[mailsOf(n)[0].value],setRecipsOf:(n,v)=>setRecips(o=>({...o,[n]:v})),prescore,setPrescore,dealId,co,setCo,f,setF,selected,setSelected,client,setClient,a,setA,files,setFiles,sign,setSign,done,sent,setSent,toast,
     say:setToast,markDone:k=>setDone(o=>({...o,[k]:true})),calc:(()=>{const downOf=n=>downBy[n]!=null?downBy[n]:f.down;const loanOf=n=>Math.max(0,f.price-downOf(n)-(f.certOn?f.certAmount:0));const termOf=n=>termBy[n]||f.term;
       return {loan,cut,offers,termOf,downOf,loanOf,payOf:(o,minus=0)=>annuity(loanOf(o.name),o.rate-minus,termOf(o.name)),custom:n=>(termBy[n]!=null&&termBy[n]!==f.term)||(downBy[n]!=null&&downBy[n]!==f.down)}})(),
     sendToBanks:names=>setSent(o=>[...o,...names.filter(n=>!o.some(x=>x.name===n)).map(n=>({name:n,status:'sent',at:nowAt()}))])};
