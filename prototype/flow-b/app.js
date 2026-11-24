@@ -424,18 +424,18 @@ function Participants({step}){
   const ps=pid=>pplOf(prescore).find(p=>p.pid===pid);
   const mainDone=partOf('main').filled;
   const list=parts.map(p=>{const x=partOf(p.id),cur=x.id===who;
-    return {...x,cur,removable:p.id!=='main'&&p.id!=='spouse',
+    return {...x,cur,removable:p.id!=='main',
       state:cur?['Заполняется','accent']:x.filled?['Заполнено','success']:x.id!=='main'&&!mainDone?['После заёмщика','']:['Не заполнено','warning']}});
   const add=()=>{if(list.length>=4){say('В заявке может быть до 4 участников');return}setCo(o=>[...o,{id:'c'+Date.now(),name:''}]);say('Созаёмщик добавлен — его анкету заполним после заёмщика, или переключитесь на него сейчас')};
   return html`<section class="card parts"><div class="parts-head"><h2>Участники заявки</h2>
       <button class="btn outline s" onClick=${add}>${ic.plus(16)} Добавить созаёмщика</button></div>
     <div class="parts-list">${list.map((p,i)=>html`<div class=${'part'+(p.cur?' cur':' sw')} key=${p.id} aria-current=${p.cur?'true':null} onClick=${()=>!p.cur&&switchTo(p.id,step)}>
       <span class="avatar">${p.name?initials(p.name):i+1}</span>
-      <div class="tx"><b title=${p.name}>${p.name||'Новый участник'}</b><div class="meta"><small>${p.role}</small><${Badge} tone=${p.state[1]}>${p.state[0]}<//></div>
-        <div class="part-acts">${p.id!=='spouse'&&(()=>{const r=ps(p.id);if(!r)return html`<button class="ps-link" onClick=${e=>{e.stopPropagation();setPsOpen(true)}}>${ic.gauge(14)} Прескоринг</button>`;
+      <div class="tx"><b title=${p.name}>${p.name||(p.id==='spouse'?'Супруг(а)':'Новый участник')}</b><div class="meta"><small>${p.id==='spouse'&&!p.name?'Созаёмщик':p.role}</small><${Badge} tone=${p.state[1]}>${p.state[0]}<//></div>
+        <div class="part-acts">${(()=>{const r=ps(p.id);if(!r)return html`<button class="ps-link" onClick=${e=>{e.stopPropagation();setPsOpen(true)}}>${ic.gauge(14)} Прескоринг</button>`;
           const lv=scoreLvl(r.score),warn=r.checks.length;
           return html`<button class="ps-mini" onClick=${e=>{e.stopPropagation();setPsOpen(true)}} title="Открыть результат прескоринга">${ic.gauge(14)}<span>Прескоринг</span><b class=${'num sc-'+lv[1]}>${r.score}</b><span class=${'lvl xs '+lv[1]}>${lv[0]}</span>${warn?html`<span class="ps-warn">${ic.info(12)} ${warn} ${plural(warn,'замечание','замечания','замечаний')}</span>`:''}</button>`})()}</div></div>
-      ${p.removable&&html`<button class="part-x" aria-label="Убрать созаёмщика" onClick=${e=>{e.stopPropagation();removePart(p.id)}}>${ic.x(16)}</button>`}
+      ${p.removable&&html`<button class="part-x" aria-label="Убрать созаёмщика" onClick=${e=>{e.stopPropagation();removePart(p.id);p.id==='spouse'&&say('Супруг(а) больше не созаёмщик — переключатель в «Семейном положении» выключен')}}>${ic.x(16)}</button>`}
     </div>`)}</div></section>`;
 }
 /* Шапка флоу новой заявки: возврат к списку + горизонтальные шаги */
@@ -1466,7 +1466,7 @@ function Root(){
     markDone:isMain?value.markDone:k=>updP(who,'done',o=>({...o,[k]:true})),
     /* переключение участника: созаёмщик заполняет только персональные данные и доход */
     switchTo:(id,step)=>{setWho(id);if(id!=='main'&&!['personal','income'].includes(step))go('personal');toTop()},
-    removePart:id=>{setCo(o=>o.filter(c=>c.id!==id));setCoA(m=>{const n={...m};delete n[id];return n});if(who===id)setWho('main')},
+    removePart:id=>{if(id==='spouse')setA(o=>({...o,spouseCo:false}));setCo(o=>o.filter(c=>c.id!==id));setCoA(m=>{const n={...m};delete n[id];return n});if(who===id)setWho('main')},
     flowNext:step=>{const cur=isMain?'main':who, i=parts.findIndex(p=>p.id===cur);
       if(step==='personal'){if(isMain)return go(nextOf('personal'));return go('income')}
       if(step==='income'){const n=parts[i+1];
