@@ -1696,10 +1696,10 @@ function PrescoreModal({onClose}){
   /* «Продолжить»: переносим ФИО, паспорт и скан в анкеты — заёмщику и созаёмщикам (новых добавляем в «Участники заявки») */
   const toAnketa=()=>{const r=prescore;if(!r){onClose();return}
     r.people.forEach((p,i)=>{const f=p.form, fio=p.name, passNum=digits(f.series)+' '+digits(f.number), docs=(f.docs||[]).map(d=>({...d,from:'prescore'}));
-      if(i===0){app.setMainA(o=>({...o,fio:o.fio||fio,passNum:o.passNum||passNum}));if(docs.length)setFiles(o=>o.passport.length?o:{...o,passport:docs});return}
+      if(i===0){app.setMainA(o=>docs.length&&!o.recognized?{...o,...PASSPORT_DATA,fio,passNum,recognized:true,fromPrescore:true}:({...o,fio:o.fio||fio,passNum:o.passNum||passNum}));if(docs.length)setFiles(o=>o.passport.length?o:{...o,passport:docs});return}
       if(p.pid!=='spouse'&&!app.co.some(c=>c.id===p.pid))setCo(o=>[...o,{id:p.pid,name:fio}]);
       app.setCoA(m=>{const e=m[p.pid]||{a:{...DEFAULT_ANKETA},files:{passport:[],snils:[]},done:{}};
-        return {...m,[p.pid]:{...e,a:{...e.a,fio:e.a.fio||fio,passNum:e.a.passNum||passNum},files:e.files.passport.length||!docs.length?e.files:{...e.files,passport:docs}}}})});
+        return {...m,[p.pid]:{...e,a:docs.length&&!e.a.recognized?{...e.a,...CO_PASSPORT,fio,passNum,recognized:true,fromPrescore:true}:{...e.a,fio:e.a.fio||fio,passNum:e.a.passNum||passNum},files:e.files.passport.length||!docs.length?e.files:{...e.files,passport:docs}}}})});
     onClose();say(r.people.length>1?'Данные участников перенесены в анкету — проверьте их на шаге «Персональные данные»':'Данные заёмщика перенесены в анкету')};
   const r=prescore;
   return html`<${ModalShell} wide=${phase==='result'} title="Прескоринг" sub=${phase==='result'?'Предварительная оценка по данным БКИ от '+r.date:null} onClose=${onClose}>
@@ -1942,7 +1942,7 @@ function Personal(){
   const set=(k,val)=>{setA(o=>({...o,[k]:val}));v.clear(k)};
   const [recog,setRecog]=useState(false);
   const uploadPassport=fs=>{if(!fs.length)return;setFiles(o=>({...o,passport:[...o.passport,...fs.map(fileObj)]}));v.setErrs({});
-    if(!a.recognized){setRecog(true);setTimeout(()=>{setA(o=>({...o,...(who==='main'?PASSPORT_DATA:CO_PASSPORT),recognized:true}));setRecog(false)},1500)}};
+    setRecog(true);setTimeout(()=>{setA(o=>({...o,...(who==='main'?PASSPORT_DATA:CO_PASSPORT),recognized:true,fromPrescore:false}));setRecog(false);say('Паспорт распознан — данные подставлены в поля')},1500)};
   const R=a.recognized;
   const man=(k,id,label,ph,helper,mask='text',im)=>R?html`<${Field} id=${id} label=${label} value=${a[k]} disabled helper="Распознано из паспорта"/>`:html`<${Field} id=${id} label=${label} value=${a[k]} placeholder=${ph} helper=${helper} mask=${mask} inputMode=${im} error=${v.errs[k]} onChange=${x=>set(k,x)}/>`;
   const req=(k,msg)=>!R&&!String(a[k]).trim()?msg:'';
@@ -1965,10 +1965,10 @@ function Personal(){
         <div class="stack" style=${{gap:'12px'}}><${UploadZone} id="up-pass" title="Паспорт РФ" error=${v.errs.passport} onFiles=${uploadPassport}/>
           ${recog&&html`<p class="helper" role="status">${ic.clock(14)} Распознаём паспорт — заполним поля автоматически…</p>`}
           ${files.passport.map((f,i)=>html`<${FileItem} f=${f} owner=${f.from?f.size+' · из прескоринга':''} onRemove=${()=>setFiles(o=>({...o,passport:o.passport.filter((_,j)=>j!==i)}))}/>`)}</div>
-        <div class="stack" style=${{gap:'12px'}}><${UploadZone} id="up-snils" title="СНИЛС" onFiles=${fs=>{setFiles(o=>({...o,snils:[...o.snils,...fs.map(fileObj)]}));if(!digits(a.snils||'')){set('snils','123-456-789 01');say('Номер СНИЛС распознан и подставлен в поле')}}}/>
+        <div class="stack" style=${{gap:'12px'}}><${UploadZone} id="up-snils" title="СНИЛС" onFiles=${fs=>{setFiles(o=>({...o,snils:[...o.snils,...fs.map(fileObj)]}));set('snils',who==='main'?'123-456-789 01':'234-567-890 12');say('Номер СНИЛС распознан и подставлен в поле')}}/>
           ${files.snils.map((f,i)=>html`<${FileItem} f=${f} onRemove=${()=>setFiles(o=>({...o,snils:o.snils.filter((_,j)=>j!==i)}))}/>`)}</div>
       </div>
-      ${R&&html`<${Alert} title=${a.fromPrescore&&files.passport.some(f=>f.from)?'Паспорт и телефон подтянуты из прескоринга':'Данные распознаны из паспорта'}>Проверьте их — если что-то не так, загрузите более чёткий скан<//>`}
+      ${R&&html`<${Alert} title=${a.fromPrescore&&files.passport.some(f=>f.from)?'Данные паспорта подтянуты из прескоринга':'Данные распознаны из паспорта'}>Проверьте их — если что-то не так, загрузите более чёткий скан<//>`}
       <div class="grid g2" style=${{marginTop:'8px'}}>
         ${man('fio','p-fio','ФИО','Фамилия, имя, отчество','Как в паспорте','name')}
         <${Field} id="p-phone" label="Номер телефона" value=${a.phone} placeholder="+7 (000) 000-00-00" inputMode="tel" mask="phone" error=${v.errs.phone} onChange=${x=>set('phone',x)}/>
