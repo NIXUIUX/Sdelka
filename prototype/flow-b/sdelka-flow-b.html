@@ -818,6 +818,24 @@ body{margin:0}
 .pk-hint{font-size:12px;color:var(--color-text-muted)}
 .bank .bank-custom{grid-column:1/-1;display:flex;align-items:center;gap:6px;margin:0;font-size:13px;line-height:18px;color:var(--color-text-secondary)}
 .bank .bank-custom svg{flex:none;color:var(--color-action-primary)}
+/* Участники: переключение анкет */
+.part.sw{cursor:pointer}
+.part.sw:hover{border-color:var(--color-border-blue)}
+.part .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.part-acts{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;margin-top:4px}
+.part-open{display:inline-flex;align-items:center;gap:2px;font:inherit;font-size:13px;font-weight:500;color:var(--color-action-primary);padding:0}
+.part-open:hover{text-decoration:underline}
+.part-acts .ps-link,.part-acts .ps-mini{margin:0}
+.who-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius-16);background:var(--color-surface-page)}
+.who-bar.co{background:var(--color-surface-card)}
+.who-bar .tx{flex:1;min-width:0;display:flex;flex-direction:column}.who-bar .tx b{font-size:15px}.who-bar .tx small{font-size:13px;color:var(--color-text-secondary)}
+/* Подписание: участники анкеты */
+.sign-parts{display:flex;flex-direction:column;gap:12px}
+.sp{border:1px solid var(--color-border-default);border-radius:var(--radius-16);padding:16px;display:flex;flex-direction:column;gap:12px}
+.sp-h{display:flex;align-items:center;gap:12px}.sp-h .tx{flex:1;min-width:0;display:flex;flex-direction:column}.sp-h .tx b{font-size:15px}.sp-h .tx small{font-size:13px;color:var(--color-text-secondary)}
+.sp-dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 16px;margin:0}
+.sp-i{display:flex;flex-direction:column;min-width:0}.sp-i span{font-size:12px;color:var(--color-text-secondary)}.sp-i b{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:640px){.sp-dl{grid-template-columns:repeat(2,minmax(0,1fr))}.who-bar{flex-wrap:wrap}}
 </style>
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -923,6 +941,8 @@ const Ctx=createContext(null);
 const useApp=()=>useContext(Ctx);
 const DEFAULT_FILTERS={goal:GOALS[0],program:PROGRAMS[0].n,kids:2,kidsDisabled:false,region:REGIONS[0],price:10000000,down:4000000,term:25,certOn:false,certType:CERTS[0],certAmount:690267,subsidyOn:false,domrf:null,
   /* клиент и платёжеспособность */ birth:'',sex:'Мужской',emp:'По найму',proof:'Госуслуги / СФР',salaryBank:'Не выбран',income:0,oblig:0};
+/* демо-паспорт созаёмщика — его подставляет распознавание в анкете созаёмщика */
+const CO_PASSPORT={fio:'Иванова Мария Петровна',birthPlace:'г. Тверь',birthDate:'02.09.1988',citizenship:'Российская Федерация',passNum:'6917 305114',passDate:'15.10.2018',passCode:'690-014',passWho:'УМВД России по Тверской области',regAddr:'г. Тверь, ул. Озёрная, д. 18, кв. 42'};
 const PASSPORT_DATA={fio:'Иванов Иван Иванович',birthPlace:'г. Тверь',birthDate:'17.04.1986',citizenship:'Российская Федерация',passNum:'6915 482731',passDate:'23.07.2015',passCode:'690-014',passWho:'УМВД России по Тверской области',regAddr:'г. Тверь, ул. Озёрная, д. 18, кв. 42'};
 const DEFAULT_ANKETA={recognized:false,fio:'',birthPlace:'',birthDate:'',citizenship:'Российская Федерация',passNum:'',passDate:'',passCode:'',passWho:'',regAddr:'',phone:'',changedName:'Не менялось',gender:'Мужской',inn:'',snils:'',email:'',factDiff:false,factAddr:'',prevPassport:false,
   marital:'Женат / замужем',spouseExcluded:'Нет',kids:'Нет',spouseCo:false,
@@ -1154,7 +1174,9 @@ function PrescoreCard(){
     <button class="btn outline s" onClick=${()=>setPsOpen(true)}>Открыть отчёт</button></section>`;
 }
 function StepsNav({current}){
-  const {done}=useApp();
+  /* в анкете созаёмщика — его прогресс по персональным данным и доходу; семейное положение берётся у заёмщика */
+  const {done:md,who,partOf}=useApp(); const pd=who==='main'?null:partOf(who).done;
+  const done=pd?{...md,personal:!!pd.personal,income:!!pd.income}:md;
   return html`<section class="side-card"><h4>Шаги анкеты</h4><div class="steps">${STEPS.map(([k,n],i)=>{const cur=k===current, d=done[k]&&!cur;
     return d?html`<button class="step done" onClick=${()=>go(k)}><span class="n">${ic.check(14)}</span><span class="t">${n}</span>${ic.chevR(18)}</button>`
       :html`<div class=${'step'+(cur?' cur':' locked')} aria-current=${cur?'step':null} aria-disabled=${!cur}><span class="n">${i+1}</span><span class="t">${n}</span></div>`})}</div></section>`;
@@ -1171,21 +1193,24 @@ function StepFooter(){
 }
 const initials=n=>(n||'').split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'?';
 /* Участники заявки: заёмщик заполняется первым, созаёмщики — после него */
-function Participants(){
-  const {a,co,setCo,say,prescore,setPsOpen}=useApp();
+function Participants({step}){
+  const {who,parts,partOf,switchTo,removePart,co,setCo,say,prescore,setPsOpen}=useApp();
   const ps=pid=>pplOf(prescore).find(p=>p.pid===pid);
-  const list=[{id:'main',name:a.fio,role:'Заёмщик',state:'Заполняется'}, ...(a.spouseCo?[{id:'spouse',name:'',role:'Созаёмщик · супруг(а)',state:'После заёмщика'}]:[]),
-    ...co.map(c=>({...c,role:'Созаёмщик',state:'После заёмщика',removable:true}))];
-  const add=()=>{if(list.length>=4){say('В заявке может быть до 4 участников');return}setCo(o=>[...o,{id:'c'+Date.now(),name:''}]);say('Созаёмщик добавлен — его анкету заполним после заёмщика')};
+  const mainDone=partOf('main').filled;
+  const list=parts.map(p=>{const x=partOf(p.id),cur=x.id===who;
+    return {...x,cur,removable:p.id!=='main'&&p.id!=='spouse',
+      state:cur?['Заполняется','accent']:x.filled?['Заполнено','success']:x.id!=='main'&&!mainDone?['После заёмщика','']:['Не заполнено','warning']}});
+  const add=()=>{if(list.length>=4){say('В заявке может быть до 4 участников');return}setCo(o=>[...o,{id:'c'+Date.now(),name:''}]);say('Созаёмщик добавлен — его анкету заполним после заёмщика, или переключитесь на него сейчас')};
   return html`<section class="card parts"><div class="parts-head"><h2>Участники заявки</h2>
       <button class="btn outline s" onClick=${add}>${ic.plus(16)} Добавить созаёмщика</button></div>
-    <div class="parts-list">${list.map((p,i)=>html`<div class=${'part'+(i===0?' cur':'')} aria-current=${i===0?'true':null}>
+    <div class="parts-list">${list.map((p,i)=>html`<div class=${'part'+(p.cur?' cur':' sw')} key=${p.id} aria-current=${p.cur?'true':null} onClick=${()=>!p.cur&&switchTo(p.id,step)}>
       <span class="avatar">${p.name?initials(p.name):i+1}</span>
-      <div class="tx"><b>${p.name||'Новый участник'}</b><div class="meta"><small>${p.role}</small>${i===0?html`<${Badge} tone="accent">${p.state}<//>`:html`<${Badge}>${p.state}<//>`}</div>
-        ${p.id!=='spouse'&&(()=>{const r=ps(p.id);if(!r)return html`<button class="ps-link" onClick=${()=>setPsOpen(true)}>${ic.gauge(14)} Пройти прескоринг</button>`;
+      <div class="tx"><b title=${p.name}>${p.name||'Новый участник'}</b><div class="meta"><small>${p.role}</small><${Badge} tone=${p.state[1]}>${p.state[0]}<//></div>
+        <div class="part-acts">${!p.cur&&html`<button class="part-open" onClick=${e=>{e.stopPropagation();switchTo(p.id,step)}}>${p.filled?'Открыть анкету':'Заполнить анкету'}${ic.chevR(14)}</button>`}
+        ${p.id!=='spouse'&&(()=>{const r=ps(p.id);if(!r)return html`<button class="ps-link" onClick=${e=>{e.stopPropagation();setPsOpen(true)}}>${ic.gauge(14)} Пройти прескоринг</button>`;
           const lv=scoreLvl(r.score),warn=r.checks.length;
-          return html`<button class="ps-mini" onClick=${()=>setPsOpen(true)} title="Открыть результат прескоринга">${ic.gauge(14)}<span>Прескоринг</span><b class="num">${r.score}</b><span class=${'lvl xs '+lv[1]}>${lv[0]}</span>${warn?html`<span class="ps-warn">${ic.info(12)} ${warn} ${plural(warn,'замечание','замечания','замечаний')}</span>`:''}</button>`})()}</div>
-      ${p.removable&&html`<button class="part-x" aria-label="Убрать созаёмщика" onClick=${()=>setCo(o=>o.filter(c=>c.id!==p.id))}>${ic.x(16)}</button>`}
+          return html`<button class="ps-mini" onClick=${e=>{e.stopPropagation();setPsOpen(true)}} title="Открыть результат прескоринга">${ic.gauge(14)}<span>Прескоринг</span><b class="num">${r.score}</b><span class=${'lvl xs '+lv[1]}>${lv[0]}</span>${warn?html`<span class="ps-warn">${ic.info(12)} ${warn} ${plural(warn,'замечание','замечания','замечаний')}</span>`:''}</button>`})()}</div></div>
+      ${p.removable&&html`<button class="part-x" aria-label="Убрать созаёмщика" onClick=${e=>{e.stopPropagation();removePart(p.id)}}>${ic.x(16)}</button>`}
     </div>`)}</div></section>`;
 }
 /* Шапка флоу новой заявки: возврат к списку + горизонтальные шаги */
@@ -1201,13 +1226,22 @@ function FlowHead({current,steps,inParts}){
       ${d?html`<button onClick=${()=>go(k)}><span class="n">${ic.check(12)}</span>${n}</button>`:html`<span><span class="n">${i+1}</span>${n}</span>`}</li>`})}</ol>`}
   </div>`;
 }
+/* Чья анкета открыта — показываем, когда в заявке больше одного участника */
+function WhoBar({step}){
+  const {who,parts,partOf,switchTo}=useApp(); if(parts.length<2||!['personal','family','income'].includes(step))return null;
+  const p=partOf(who), main=who==='main';
+  return html`<div class=${'who-bar'+(main?'':' co')}><span class="avatar">${p.name?initials(p.name):p.i+1}</span>
+    <div class="tx"><b>${main?'Анкета заёмщика':'Анкета созаёмщика'}${p.name?' · '+p.name:''}</b>
+      <small>${main?'Созаёмщиков заполним после — или переключитесь на них в «Участниках заявки»':'Семейное положение берём из анкеты заёмщика. Заполняем персональные данные, доход и работу'}</small></div>
+    ${!main&&html`<button class="btn outline s" onClick=${()=>switchTo('main',step)}>${ic.chevL(16)}К заёмщику</button>`}</div>`;
+}
 function AnketaPage({step,children,onNext,extraSide,alert,primary='Продолжить'}){
-  const idx=STEPS.findIndex(s=>s[0]===step);
-  const back=idx===0?['Вернуться к выбору банков','']:['Назад',STEPS[idx-1][0]];
+  const {flowBack,who}=useApp(); const idx=STEPS.findIndex(s=>s[0]===step);
+  const back=who!=='main'?['Назад',null]:idx===0?['Вернуться к выбору банков','']:['Назад',STEPS[idx-1][0]];
   return html`<${AppHeader}/><main class="wrap"><${FlowHead} current=${step} inParts=${step!=='signing'}/><div class="layout">
-    <div class="main-col">${step!=='signing'&&html`<${Participants}/>`}<section class="card pad32 stack-24 anketa">${children}</section></div>
+    <div class="main-col">${step!=='signing'&&html`<${Participants} step=${step}/>`}<section class="card pad32 stack-24 anketa"><${WhoBar} step=${step}/>${children}</section></div>
     <aside class="side"><${PrescoreCard}/><${CreditParams}/>${extraSide}<${StepsNav} current=${step}/><${HelpCard}/></aside></div></main>
-    <${BottomBar} alert=${alert} secondary=${back[0]} onSecondary=${()=>go(back[1])} primary=${primary} onPrimary=${onNext}/>`;
+    <${BottomBar} alert=${alert} secondary=${back[0]} onSecondary=${()=>back[1]===null||step==='personal'||step==='income'?flowBack(step):go(back[1])} primary=${primary} onPrimary=${onNext}/>`;
 }
 /* run validation; returns true if ok */
 /* Якорь к первому полю с ошибкой: скроллим к самому верхнему и ставим в него фокус */
@@ -1727,11 +1761,11 @@ function Deals(){
 
 /* ---------- 1.1 Персональные данные ---------- */
 function Personal(){
-  const {a,setA,files,setFiles,markDone,sber,say}=useApp(); const v=useValidation();
+  const app=useApp(); const {a,setA,files,setFiles,markDone,sber,say,who}=app; const v=useValidation();
   const set=(k,val)=>{setA(o=>({...o,[k]:val}));v.clear(k)};
   const [recog,setRecog]=useState(false);
   const uploadPassport=fs=>{if(!fs.length)return;setFiles(o=>({...o,passport:[...o.passport,...fs.map(fileObj)]}));v.setErrs({});
-    if(!a.recognized){setRecog(true);setTimeout(()=>{setA(o=>({...o,...PASSPORT_DATA,recognized:true}));setRecog(false)},1500)}};
+    if(!a.recognized){setRecog(true);setTimeout(()=>{setA(o=>({...o,...(who==='main'?PASSPORT_DATA:CO_PASSPORT),recognized:true}));setRecog(false)},1500)}};
   const R=a.recognized;
   const man=(k,id,label,ph,helper,mask='text',im)=>R?html`<${Field} id=${id} label=${label} value=${a[k]} disabled helper="Распознано из паспорта"/>`:html`<${Field} id=${id} label=${label} value=${a[k]} placeholder=${ph} helper=${helper} mask=${mask} inputMode=${im} error=${v.errs[k]} onChange=${x=>set(k,x)}/>`;
   const req=(k,msg)=>!R&&!String(a[k]).trim()?msg:'';
@@ -1747,7 +1781,7 @@ function Personal(){
       inn:a.inn&&digits(a.inn).length!==12?'ИНН физлица — 12 цифр. Можно оставить поле пустым, если клиент его не знает':'',
       factAddr:a.factDiff&&!a.factAddr.trim()?'Укажите, где клиент живёт сейчас — банк проверяет оба адреса':'',
       ...(a.prevPassport&&!a.firstPassport?{prevSer:digits(a.prevSer||'').length!==4?'Серия — 4 цифры':'',prevNo:digits(a.prevNo||'').length!==6?'Номер — 6 цифр':'',prevDate:!/^\d{2}\.\d{2}\.\d{4}$/.test(a.prevDate||'')?'Введите дату в формате дд.мм.гггг':''}:{}),
-      ...(sber?{income:!+digits(a.income||'')?'Укажите ежемесячный доход после вычета налогов':'',monthsHere:a.monthsHere===''||a.monthsHere==null?'Укажите, сколько месяцев клиент работает на текущем месте':''}:{})})){markDone('personal');go(nextOf('personal'))} };
+      ...(sber?{income:!+digits(a.income||'')?'Укажите ежемесячный доход после вычета налогов':'',monthsHere:a.monthsHere===''||a.monthsHere==null?'Укажите, сколько месяцев клиент работает на текущем месте':''}:{})})){markDone('personal');app.flowNext('personal')} };
   return html`<${AnketaPage} step="personal" onNext=${next} alert=${firstErrAlert(v.errs,'Чтобы перейти дальше, заполните недостающие данные')}>
     <div class="stack"><h1 class="sec">Персональные данные</h1><p class="desc">Загрузите паспорт и СНИЛС для заполнения данных или введите реквизиты вручную</p>
       <div class="grid g2">
@@ -1819,7 +1853,7 @@ function StepperField({id,label,value,onChange,min=0,max=60,error,helper}){
     ${error&&typeof error==='string'?html`<${FieldError} text=${error}/>`:helper&&html`<p class="helper">${helper}</p>`}</div>`;
 }
 function Income(){
-  const {a,setA,markDone,say}=useApp(); const v=useValidation();
+  const app=useApp(); const {a,setA,markDone,say}=app; const v=useValidation();
   const set=(k,val)=>{setA(o=>({...o,[k]:val}));v.clear(k)};
   const jobs=a.jobs||[];
   const updJ=(i,k,val)=>{setA(o=>({...o,jobs:o.jobs.map((x,j)=>j===i?{...x,[k]:val}:x)}));v.clear('j'+k+i)};
@@ -1838,7 +1872,7 @@ function Income(){
       position:!a.position.trim()?'Укажите должность — банк учитывает её при оценке стабильности дохода':'',
       workPhone:digits(a.workPhone).length<11?'Нужен рабочий номер полностью — банк может позвонить в отдел кадров для подтверждения':'',
       startDate:!/^\d{2}\.\d{2}\.\d{4}$/.test(a.startDate)?'Введите дату в формате дд.мм.гггг — по ней считается стаж на текущем месте':'',...jobRules,eduLevel:a.eduLevel===PICK?'Выберите уровень образования':'',expYears:a.expYears===''?'Укажите общий стаж — можно 0, если клиент только начал работать':'',
-      jobs3:a.jobs3===''||+a.jobs3<1?'Укажите хотя бы одно место работы за последние 3 года':'',exp5:a.exp5===PICK?'Выберите стаж за последние 5 лет':''})){markDone('income');go('signing')} };
+      jobs3:a.jobs3===''||+a.jobs3<1?'Укажите хотя бы одно место работы за последние 3 года':'',exp5:a.exp5===PICK?'Выберите стаж за последние 5 лет':''})){markDone('income');app.flowNext('income')} };
   return html`<${AnketaPage} step="income" onNext=${next} alert=${firstErrAlert(v.errs,'Не хватает данных о доходе и работе')}>
     <div class="stack"><h1 class="sec">Доход участника</h1><p class="desc">Изменения сразу влияют на расчёт платёжеспособности</p>
       <div class="grid g2">
@@ -1968,6 +2002,14 @@ function Signing(){
       alert=${needSign&&html`<${Alert} type="warning" title="Документы ещё не подписаны">Выберите способ подписания для участника и завершите его — после этого пакет уйдёт в ${banks.length} ${plural(banks.length,'банк','банка','банков')}.<//>`}>
     <div class="stack"><h1 class="sec">Проверьте данные заявки</h1><p class="desc">Краткая сводка по шагам анкеты. Если что-то не так — вернитесь к нужному разделу</p>
       <div class="sum">${summary.map(([k,t,d])=>html`<div class="sum-row" key=${t}><span class=${'tick'+(app.done[k]?'':' no')}>${app.done[k]?ic.check(14):'!'}</span><div class="tx"><b>${t}</b><small>${d}</small></div><a class="link" href=${'#'+k}>Изменить</a></div>`)}</div></div>
+    <div class="stack"><h1 class="sec">Участники анкеты</h1><p class="desc">На кого оформляется анкета — данные из анкет участников</p>
+      <div class="sign-parts">${app.parts.map(p=>{const x=app.partOf(p.id),pa=x.a;
+        const inc=+digits(pa.income||'')+(pa.jobs||[]).reduce((t,j)=>t+(+digits(j.income||'')||0),0);
+        const rows=[['Дата рождения',pa.birthDate],['Паспорт',pa.passNum],['Телефон',pa.phone],['СНИЛС',pa.snils],['Доход',inc?rub(inc)+' / мес':''],['Работа',pa.org]];
+        return html`<div class="sp" key=${p.id}><div class="sp-h"><span class="avatar">${x.name?initials(x.name):x.i+1}</span>
+            <div class="tx"><b>${x.name||'Новый участник'}</b><small>${x.role}</small></div>
+            ${x.filled?html`<${Badge} tone="success">Анкета заполнена<//>`:html`<button class="btn outline s" onClick=${()=>app.switchTo(p.id,'personal')||go('personal')}>Заполнить анкету</button>`}</div>
+          ${x.filled&&html`<div class="sp-dl num">${rows.filter(r=>r[1]).map(([k,v])=>html`<div class="sp-i"><span>${k}</span><b>${v}</b></div>`)}</div>`}</div>`})}</div></div>
     <div class="stack"><h1 class="sec">Документы</h1><div class="grid g2">${docs.map(d=>html`<${FileItem} f=${d}/>`)}</div></div>
     <div class="stack"><h1 class="sec">Способ подписания</h1><p class="desc">Каждый участник выбирает удобный способ подписания анкеты и согласия</p>
       <div class="participant">
@@ -2113,6 +2155,8 @@ function Root(){
   const [a,setA]=useState(DEFAULT_ANKETA);
   const [files,setFiles]=useState({passport:[],snils:[]});
   const [co,setCo]=useState([]);
+  /* анкеты созаёмщиков: id → {a, files, done}; who — чья анкета сейчас открыта */
+  const [coA,setCoA]=useState({}); const [who,setWho]=useState('main');
   const [sign,setSign]=useState({method:'phone',status:'none',paperFiles:[],agree:false,drawn:false});
   const [done,setDone]=useState({});
   const [sent,setSent]=useState([]);
@@ -2132,6 +2176,34 @@ function Root(){
       return {loan,cut,offers,termOf,downOf,loanOf,payOf:(o,minus=0)=>annuity(loanOf(o.name),o.rate-minus,termOf(o.name)),custom:n=>(termBy[n]!=null&&termBy[n]!==f.term)||(downBy[n]!=null&&downBy[n]!==f.down)}})(),
     sendToBanks:names=>setSent(o=>[...o,...names.filter(n=>!o.some(x=>x.name===n)).map(n=>({name:n,status:'sent',at:nowAt()}))])};
   const sber=isSberOnly(selected); STEPS=sber?SBER_STEPS:FULL_STEPS; value.sber=sber;
+  /* ---------- участники: заёмщик и созаёмщики (супруг(а) из «Семейного положения» + добавленные) ---------- */
+  const blankP=()=>({a:{...DEFAULT_ANKETA},files:{passport:[],snils:[]},done:{}});
+  const ent=id=>coA[id]||blankP();
+  const updP=(id,key,fn)=>setCoA(m=>{const e=m[id]||blankP();return {...m,[id]:{...e,[key]:typeof fn==='function'?fn(e[key]):fn}}});
+  const parts=sber?[{id:'main'}]:[{id:'main'},...(a.spouseCo?[{id:'spouse',spouse:true}]:[]),...co];
+  const isMain=who==='main'||!parts.some(p=>p.id===who);
+  const partOf=id=>{const i=parts.findIndex(p=>p.id===id);const p=parts[i]||{id};const pa=id==='main'?a:ent(id).a;const pd=id==='main'?done:ent(id).done;
+    const filled=id==='main'?!!(done.personal&&done.income):!!(pd.personal&&pd.income);
+    return {id,i,a:pa,files:id==='main'?files:ent(id).files,done:pd,filled,name:pa.fio||p.name||'',role:id==='main'?'Заёмщик':p.spouse?'Созаёмщик · супруг(а)':'Созаёмщик'}};
+  const toTop=()=>window.scrollTo({top:0,behavior:'smooth'});
+  Object.assign(value,{
+    mainA:a,setMainA:setA,mainFiles:files,who:isMain?'main':who,parts,partOf,coA,setCoA,
+    a:isMain?a:ent(who).a, setA:isMain?setA:fn=>updP(who,'a',fn),
+    files:isMain?files:ent(who).files, setFiles:isMain?setFiles:fn=>updP(who,'files',fn),
+    markDone:isMain?value.markDone:k=>updP(who,'done',o=>({...o,[k]:true})),
+    /* переключение участника: созаёмщик заполняет только персональные данные и доход */
+    switchTo:(id,step)=>{setWho(id);if(id!=='main'&&!['personal','income'].includes(step))go('personal');toTop()},
+    removePart:id=>{setCo(o=>o.filter(c=>c.id!==id));setCoA(m=>{const n={...m};delete n[id];return n});if(who===id)setWho('main')},
+    flowNext:step=>{const cur=isMain?'main':who, i=parts.findIndex(p=>p.id===cur);
+      if(step==='personal'){if(isMain)return go(nextOf('personal'));return go('income')}
+      if(step==='income'){const n=parts[i+1];
+        if(n){setWho(n.id);setToast(isMain?'Анкета заёмщика заполнена — теперь анкета созаёмщика':'Анкета созаёмщика заполнена — следующий участник');go('personal');return toTop()}
+        if(!isMain)setWho('main');setToast(parts.length>1?'Анкеты всех участников заполнены':'');return go('signing')}
+      go(nextOf(step))},
+    flowBack:step=>{const cur=isMain?'main':who, i=parts.findIndex(p=>p.id===cur);
+      if(isMain){const k=STEPS.findIndex(s=>s[0]===step);return go(k<=1?'podbor':STEPS[k-1][0])}
+      if(step==='income')return go('personal');
+      const prev=parts[i-1];setWho(prev.id);go('income');toTop()}});
   const order=STEPS.map(s=>s[0]);
   const DEMO={...PASSPORT_DATA,recognized:true,phone:'+7 (900) 123-45-67',snils:'123-456-789 01',email:'ivanov@example.com',income:'180000',org:'ООО «Северсталь-Инфо»',orgInn:'7701234567',position:'Ведущий инженер',workPhone:'+7 (495) 123-45-67',startDate:'01.03.2021',edus:[{level:'Высшее',year:'2008',place:'ТвГУ',spec:'Прикладная информатика'}],eduLevel:'Высшее',expYears:'14',jobs3:'1',exp5:'5 лет и более'};
   const devJump=h=>{const i=order.indexOf(h);const need=h==='status'?order.length:i;
@@ -2145,6 +2217,7 @@ function Root(){
   if(route==='status'&&!sent.length) target=done[STEPS[STEPS.length-2][0]]?'signing':'podbor';
   useEffect(()=>{if(target!==route){go(target);setToast(target==='podbor'?'Сначала выберите банки на шаге «Подбор условий»':'Шаги анкеты заполняются по порядку')}},[target,route]);
   value.devJump=devJump;
+  useEffect(()=>{if(!['personal','income'].includes(target)&&who!=='main')setWho('main')},[target]);
   const Page={'':Deals,podbor:Podbor,personal:Personal,family:Family,income:Income,signing:Signing,status:Status,client:Client}[target];
   return html`<${Ctx.Provider} value=${value}><${Page} key=${target}/><${Toast}/><//>`;
 }
