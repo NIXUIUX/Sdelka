@@ -1073,7 +1073,7 @@ function PickedBanks({onRemove}){
 function PrescoreCard(){
   const {prescore:r,setPsOpen}=useApp();
   if(!r)return html`<section class="side-card ps-side"><div class="ps-side-h"><span class="icon-tile">${ic.gauge(20)}</span>
-      <div><h4>Прескоринг клиента</h4><p class="desc">Кредитная история из БКИ за пару секунд. На заявку в банк не влияет</p></div></div>
+      <div><h4>Прескоринг клиента</h4><p class="desc">Получить рейтинг и портрет заемщика за несколько секунд</p></div></div>
     <button class="btn outline s" onClick=${()=>setPsOpen(true)}>Проверить клиента</button></section>`;
   const p=r.people[0], lv=scoreLvl(p.score);
   return html`<section class="side-card ps-side"><div class="row" style=${{justifyContent:'space-between'}}><h4>Прескоринг</h4><span class=${'lvl '+lv[1]}>${lv[0]}</span></div>
