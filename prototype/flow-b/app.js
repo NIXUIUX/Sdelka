@@ -452,13 +452,12 @@ function FlowHead({current,steps,inParts}){
   </div>`;
 }
 /* Чья анкета открыта — показываем, когда в заявке больше одного участника */
+/* Шапка анкеты: явно показываем, чью анкету заполняем — роль, ФИО и кредитный рейтинг из прескоринга */
 function WhoBar({step}){
-  const {who,parts,partOf,switchTo}=useApp(); if(parts.length<2||!['personal','family','income'].includes(step))return null;
-  /* у заёмщика полоску не показываем — открытая анкета видна по «Участникам заявки» */
-  const p=partOf(who); if(who==='main')return null;
-  return html`<div class="who-bar co"><span class="avatar">${p.name?initials(p.name):p.i+1}</span>
-    <div class="tx"><b>Анкета созаёмщика${p.name?' · '+p.name:''}</b></div>
-    <button class="btn outline s" onClick=${()=>switchTo('main',step)}>${ic.chevL(16)}К заёмщику</button></div>`;
+  const {who,partOf,prescore}=useApp(); if(!['personal','family','income'].includes(step))return null;
+  const p=partOf(who), r=pplOf(prescore).find(x=>x.pid===p.id), lv=r&&scoreLvl(r.score);
+  return html`<div class="who-head"><div class="who-t"><small>${p.role}</small><h2>${p.name||(p.id==='spouse'?'Супруг(а)':'Новый участник')}</h2></div>
+    ${r&&html`<div class="who-score"><span class=${'lvl xs '+lv[1]}>Кредитный рейтинг</span><div><b class=${'num sc-'+lv[1]}>${r.score}</b><span>из 999</span></div></div>`}</div>`;
 }
 function AnketaPage({step,children,onNext,extraSide,alert,primary='Продолжить'}){
   const {flowBack,who}=useApp(); const idx=STEPS.findIndex(s=>s[0]===step);
