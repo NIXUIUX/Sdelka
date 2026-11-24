@@ -596,3 +596,13 @@ body{margin:0}
 .ps-grid>:nth-child(4){grid-column:1}
 .ps-recog{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--color-text-secondary)}
 @media(max-width:640px){.ps-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ps-grid>:nth-child(-n+3){grid-column:1/-1}.ps-grid>:nth-child(4){grid-column:auto}}
+/* Прескоринг в боковой колонке вместо кнопки в шапке */
+.ps-side{gap:14px}
+.ps-side-h{display:flex;gap:12px;align-items:flex-start}
+.ps-side-h .icon-tile{background:var(--color-surface-card)}
+.ps-side-h h4{font-size:16px;line-height:22px}
+.ps-side .desc{margin:2px 0 0;font-size:13px;line-height:18px}
+.ps-side>.btn{align-self:stretch;justify-content:center}
+.ps-side-score{display:flex;align-items:baseline;gap:6px}.ps-side-score b{font-size:32px;line-height:36px;font-weight:700}.ps-side-score span{font-size:13px;color:var(--color-text-secondary)}
+.ps-side .ps-scale{margin:0}
+.ps-side-who{margin:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

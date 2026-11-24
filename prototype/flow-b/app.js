@@ -276,6 +276,19 @@ function PickedBanks({onRemove}){
       :html`<p class="desc" style=${{fontSize:'13px',margin:0}}>Отметьте банки в списке — они появятся здесь</p>`}
   </section>`;
 }
+/* Прескоринг в боковой колонке: до проверки — короткое объяснение и кнопка, после — рейтинг и вход в отчёт */
+function PrescoreCard(){
+  const {prescore:r,setPsOpen}=useApp();
+  if(!r)return html`<section class="side-card ps-side"><div class="ps-side-h"><span class="icon-tile">${ic.gauge(20)}</span>
+      <div><h4>Прескоринг клиента</h4><p class="desc">Кредитная история из БКИ за пару секунд. На заявку в банк не влияет</p></div></div>
+    <button class="btn outline s" onClick=${()=>setPsOpen(true)}>Проверить клиента</button></section>`;
+  const p=r.people[0], lv=scoreLvl(p.score);
+  return html`<section class="side-card ps-side"><div class="row" style=${{justifyContent:'space-between'}}><h4>Прескоринг</h4><span class=${'lvl '+lv[1]}>${lv[0]}</span></div>
+    <div class="ps-side-score"><b class="num">${p.score}</b><span>из 999</span></div>
+    <div class="ps-scale"><i style=${{left:(p.score/999*100)+'%'}}></i></div>
+    <p class="desc ps-side-who">${p.name} · ${r.date}</p>
+    <button class="btn outline s" onClick=${()=>setPsOpen(true)}>Открыть отчёт</button></section>`;
+}
 function StepsNav({current}){
   const {done}=useApp();
   return html`<section class="side-card"><h4>Шаги анкеты</h4><div class="steps">${STEPS.map(([k,n],i)=>{const cur=k===current, d=done[k]&&!cur;
@@ -318,8 +331,7 @@ function FlowHead({current,steps,inParts}){
   return html`<div class="flow-head">
     <a class="link back" href="#" onClick=${e=>{e.preventDefault();go('')}}>${ic.chevL(16)} Ипотечные заявки</a>
     <div class="flow-row"><div class="flow-title"><h1>Заявка № ${dealId}</h1></div>
-      ${inParts?null:prescore?html`<button class="score-pill" onClick=${()=>setPm(true)} title="Открыть результат прескоринга">${ic.gauge(16)}<span>Кредитный рейтинг</span><b>${prescore.score}</b><span class=${'lvl '+scoreLvl(prescore.score)[1]}>${scoreLvl(prescore.score)[0]}</span>${prescore.people.length>1&&html`<span class="more">+${prescore.people.length-1}</span>`}</button>`
-        :html`<button class="btn outline sm" onClick=${()=>setPm(true)}>${ic.gauge(16)}Прескоринг</button>`}</div>
+</div>
     ${pm&&html`<${PrescoreModal} onClose=${()=>setPm(false)}/>`}
     ${steps&&html`<ol class="hsteps">${STEPS.map(([k,n],i)=>{const d=done[k]&&i!==idx;return html`<li class=${i===idx?'cur':d?'done':''}>
       ${d?html`<button onClick=${()=>go(k)}><span class="n">${ic.check(12)}</span>${n}</button>`:html`<span><span class="n">${i+1}</span>${n}</span>`}</li>`})}</ol>`}
@@ -330,7 +342,7 @@ function AnketaPage({step,children,onNext,extraSide,alert,primary='Продол�
   const back=idx===0?['Вернуться к выбору банков','']:['Назад',STEPS[idx-1][0]];
   return html`<${AppHeader}/><main class="wrap"><${FlowHead} current=${step} inParts=${step!=='signing'}/><div class="layout">
     <div class="main-col">${step!=='signing'&&html`<${Participants}/>`}<section class="card pad32 stack-24 anketa">${children}</section></div>
-    <aside class="side"><${CreditParams}/>${extraSide}<${StepsNav} current=${step}/><${HelpCard}/></aside></div></main>
+    <aside class="side"><${PrescoreCard}/><${CreditParams}/>${extraSide}<${StepsNav} current=${step}/><${HelpCard}/></aside></div></main>
     <${BottomBar} alert=${alert} secondary=${back[0]} onSecondary=${()=>go(back[1])} primary=${primary} onPrimary=${onNext}/>`;
 }
 /* run validation; returns true if ok */
@@ -487,7 +499,7 @@ function Podbor(){
         ${unfit.length>3&&html`<button class="more-btn" onClick=${()=>setUnfitOpen(!unfitOpen)}>${unfitOpen?'Свернуть':'Ещё '+(unfit.length-3)+' '+plural(unfit.length-3,'банк','банка','банков')}<span class=${'cp-chev'+(unfitOpen?' up':'')}>${ic.chev(16)}</span></button>`}
       </div>`}
     </section></div>
-    <aside class="side"><${PickedBanks} onRemove=${toggleSel}/><${StepsNav} current="podbor"/><${HelpCard}/></aside></div>
+    <aside class="side"><${PrescoreCard}/><${PickedBanks} onRemove=${toggleSel}/><${StepsNav} current="podbor"/><${HelpCard}/></aside></div>
   </main>
   <${BottomBar}
     alert=${needBanks&&html`<${Alert} type="warning" title="Сначала выберите банки">Отметьте галочкой хотя бы один банк в списке — так мы поймём, кому отправить предложение и анкету клиента<//>`}
