@@ -728,3 +728,7 @@ body{margin:0}
 .ps-side-score b{font-size:24px!important;line-height:28px!important;font-weight:600!important;font-variant-numeric:tabular-nums}
 .ps-side-score .lvl{margin-left:auto;align-self:center}
 .ps-side-cap{margin:0;font-size:12px;line-height:16px;color:var(--color-text-secondary)}
+/* карточки участников: всё по верхнему краю, чтобы ФИО стояли на одной линии при разном числе строк */
+.part{align-items:flex-start}
+.part .avatar{margin-top:2px}
+.part-x{margin:-2px -6px 0 0}

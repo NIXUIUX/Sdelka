@@ -434,7 +434,7 @@ function Participants({step}){
       <div class="tx"><b title=${p.name}>${p.name||'Новый участник'}</b><div class="meta"><small>${p.role}</small><${Badge} tone=${p.state[1]}>${p.state[0]}<//></div>
         <div class="part-acts">${p.id!=='spouse'&&(()=>{const r=ps(p.id);if(!r)return html`<button class="ps-link" onClick=${e=>{e.stopPropagation();setPsOpen(true)}}>${ic.gauge(14)} Прескоринг</button>`;
           const lv=scoreLvl(r.score),warn=r.checks.length;
-          return html`<button class="ps-mini" onClick=${e=>{e.stopPropagation();setPsOpen(true)}} title="Открыть результат прескоринга">${ic.gauge(14)}<span>Прескоринг</span><b class="num">${r.score}</b><span class=${'lvl xs '+lv[1]}>${lv[0]}</span>${warn?html`<span class="ps-warn">${ic.info(12)} ${warn} ${plural(warn,'замечание','замечания','замечаний')}</span>`:''}</button>`})()}</div></div>
+          return html`<button class="ps-mini" onClick=${e=>{e.stopPropagation();setPsOpen(true)}} title="Открыть результат прескоринга">${ic.gauge(14)}<span>Прескоринг</span><b class=${'num sc-'+lv[1]}>${r.score}</b><span class=${'lvl xs '+lv[1]}>${lv[0]}</span>${warn?html`<span class="ps-warn">${ic.info(12)} ${warn} ${plural(warn,'замечание','замечания','замечаний')}</span>`:''}</button>`})()}</div></div>
       ${p.removable&&html`<button class="part-x" aria-label="Убрать созаёмщика" onClick=${e=>{e.stopPropagation();removePart(p.id)}}>${ic.x(16)}</button>`}
     </div>`)}</div></section>`;
 }
@@ -465,7 +465,7 @@ function AnketaPage({step,children,onNext,extraSide,alert,primary='Продол�
   const back=who!=='main'?['Назад',null]:idx===0?['Вернуться к выбору банков','']:['Назад',STEPS[idx-1][0]];
   return html`<${AppHeader}/><main class="wrap"><${FlowHead} current=${step} inParts=${step!=='signing'}/><div class="layout">
     <div class="main-col">${step!=='signing'&&html`<${Participants} step=${step}/>`}<section class="card pad32 stack-24 anketa"><${WhoBar} step=${step}/>${children}</section></div>
-    <aside class="side"><${PrescoreCard}/><${CreditParams}/>${extraSide}<${StepsNav} current=${step}/><${HelpCard}/></aside></div></main>
+    <aside class="side">${step==='signing'&&html`<${PrescoreCard}/>`}<${CreditParams}/>${extraSide}<${StepsNav} current=${step}/><${HelpCard}/></aside></div></main>
     <${BottomBar} alert=${alert} secondary=${back[0]} onSecondary=${()=>back[1]===null||step==='personal'||step==='income'?flowBack(step):go(back[1])} primary=${primary} onPrimary=${onNext}/>`;
 }
 /* run validation; returns true if ok */
