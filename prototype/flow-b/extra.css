@@ -541,7 +541,7 @@ body{margin:0}
 .rf .suffix{bottom:9px;right:14px;display:flex;align-items:baseline;gap:6px;font-size:15px;pointer-events:none}
 .rf-aside{font-size:12px;font-weight:600;color:var(--color-action-primary);background:var(--color-surface-card);border-radius:6px;padding:1px 6px}
 .field.sm.rf:has(input:placeholder-shown):not(:focus-within) .lab{position:static;transform:none;font-size:12px;line-height:18px}
-.rf-range{position:absolute;left:14px;right:14px;bottom:-8px;width:auto;height:16px;margin:0;padding:0;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}
+.field .rf-range{position:absolute;left:14px;right:auto;bottom:-8px;width:calc(100% - 28px);box-sizing:border-box;height:16px;margin:0;padding:0;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}
 .rf-range:focus{outline:none}
 .rf-range::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(to right,var(--color-action-primary) var(--p),transparent var(--p))}
 .rf-range::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-7px;border-radius:50%;background:var(--color-action-primary);border:3px solid var(--color-surface-white);box-shadow:0 1px 4px rgba(12,42,208,.35)}
