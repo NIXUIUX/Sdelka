@@ -338,14 +338,14 @@ function PickedBanks({onRemove}){
 }
 /* Прескоринг в боковой колонке: до проверки — короткое объяснение и кнопка, после — рейтинг и вход в отчёт */
 function PrescoreCard(){
-  const {prescore:r,setPsOpen}=useApp();
+  const {prescore:r,setPsOpen,parts,partOf}=useApp(); const noInc=pid=>pid!=='main'&&parts.some(x=>x.id===pid)&&!partOf(pid).a.useIncome;
   if(!r)return html`<section class="side-card ps-side"><div class="ps-side-h"><span class="icon-tile">${ic.gauge(20)}</span>
       <div><h4>Прескоринг клиента</h4><p class="desc">Получить рейтинг и портрет заемщика за несколько секунд</p></div></div>
     <button class="btn outline s" onClick=${()=>setPsOpen(true)}>Проверить клиента</button></section>`;
   /* по каждому проверенному участнику: ФИО, балл в цвете своей зоны шкалы, шкала и подпись */
   return html`<section class="side-card ps-side"><div class="row" style=${{justifyContent:'space-between'}}><h4>Прескоринг</h4><span class="ps-side-date">${r.date}</span></div>
     ${r.people.map(p=>{const lv=scoreLvl(p.score);return html`<div class="ps-side-p" key=${p.pid}>
-      <div class="ps-side-name"><b title=${p.name}>${p.name}</b>${r.people.length>1&&html`<small>${p.role}</small>`}</div>
+      <div class="ps-side-name"><b title=${p.name}>${p.name}</b>${r.people.length>1&&html`<small>${p.role}${noInc(p.pid)?html` · <span class="noinc">Доход не учитывается</span>`:''}</small>`}</div>
       <div class="ps-side-score"><b class=${'num sc-'+lv[1]}>${p.score}</b><span>из 999</span><span class=${'lvl xs '+lv[1]}>${lv[0]}</span></div>
       <div class="ps-scale"><i style=${{left:(p.score/999*100)+'%'}}></i></div>
       <p class="ps-side-cap">Кредитный рейтинг</p></div>`})}
@@ -431,7 +431,7 @@ function Participants({step}){
       <button class="btn outline s" onClick=${add}>${ic.plus(16)} Добавить созаёмщика</button></div>
     <div class="parts-list">${list.map((p,i)=>html`<div class=${'part'+(p.cur?' cur':' sw')} key=${p.id} aria-current=${p.cur?'true':null} onClick=${()=>!p.cur&&switchTo(p.id,step)}>
       <span class="avatar">${p.name?initials(p.name):i+1}</span>
-      <div class="tx"><b title=${p.name}>${p.name||(p.id==='spouse'?'Супруг(а)':'Новый участник')}</b><div class="meta"><small>${p.id==='spouse'&&!p.name?'Созаёмщик':p.role}</small><${Badge} tone=${p.state[1]}>${p.state[0]}<//></div>
+      <div class="tx"><b title=${p.name}>${p.name||(p.id==='spouse'?'Супруг(а)':'Новый участник')}</b><div class="meta"><small>${p.id==='spouse'&&!p.name?'Созаёмщик':p.role}</small><${Badge} tone=${p.state[1]}>${p.state[0]}<//>${p.id!=='main'&&!p.a.useIncome&&html`<span class="noinc">Доход не учитывается</span>`}</div>
         <div class="part-acts">${(()=>{const r=ps(p.id);if(!r)return html`<button class="ps-link" onClick=${e=>{e.stopPropagation();setPsOpen(true)}}>${ic.gauge(14)} Прескоринг</button>`;
           const lv=scoreLvl(r.score),warn=r.checks.length;
           return html`<button class="ps-mini" onClick=${e=>{e.stopPropagation();setPsOpen(true)}} title="Открыть результат прескоринга">${ic.gauge(14)}<span>Прескоринг</span><b class=${'num sc-'+lv[1]}>${r.score}</b><span class=${'lvl xs '+lv[1]}>${lv[0]}</span>${warn?html`<span class="ps-warn">${ic.info(12)} ${warn} ${plural(warn,'замечание','замечания','замечаний')}</span>`:''}</button>`})()}</div></div>
