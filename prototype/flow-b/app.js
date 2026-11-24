@@ -404,11 +404,11 @@ function FlowHead({current,steps,inParts}){
 /* Чья анкета открыта — показываем, когда в заявке больше одного участника */
 function WhoBar({step}){
   const {who,parts,partOf,switchTo}=useApp(); if(parts.length<2||!['personal','family','income'].includes(step))return null;
-  const p=partOf(who), main=who==='main';
-  return html`<div class=${'who-bar'+(main?'':' co')}><span class="avatar">${p.name?initials(p.name):p.i+1}</span>
-    <div class="tx"><b>${main?'Анкета заёмщика':'Анкета созаёмщика'}${p.name?' · '+p.name:''}</b>
-      <small>${main?'Созаёмщиков заполним после — или переключитесь на них в «Участниках заявки»':'Семейное положение берём из анкеты заёмщика. Заполняем персональные данные, доход и работу'}</small></div>
-    ${!main&&html`<button class="btn outline s" onClick=${()=>switchTo('main',step)}>${ic.chevL(16)}К заёмщику</button>`}</div>`;
+  /* у заёмщика полоску не показываем — открытая анкета видна по «Участникам заявки» */
+  const p=partOf(who); if(who==='main')return null;
+  return html`<div class="who-bar co"><span class="avatar">${p.name?initials(p.name):p.i+1}</span>
+    <div class="tx"><b>Анкета созаёмщика${p.name?' · '+p.name:''}</b></div>
+    <button class="btn outline s" onClick=${()=>switchTo('main',step)}>${ic.chevL(16)}К заёмщику</button></div>`;
 }
 function AnketaPage({step,children,onNext,extraSide,alert,primary='Продолжить'}){
   const {flowBack,who}=useApp(); const idx=STEPS.findIndex(s=>s[0]===step);
