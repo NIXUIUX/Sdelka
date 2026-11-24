@@ -33,6 +33,7 @@ const ic={
   unarchive:s=>I('M3 4h18v4H3z|M5 8v11c0 1 1 2 2 2h10c1 0 2-1 2-2V8|M12 18v-7|M9 14l3-3 3 3',s),
   gauge:s=>I('m12 14 4-4|M3.34 19a10 10 0 1 1 17.32 0',s),
   minus:s=>I('M5 12h14',s),
+  clip:s=>I('m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48',s),
   plus:s=>I('M5 12h14|M12 5v14',s), arrowR:s=>I('M5 12h14|m12 5 7 7-7 7',s), trash:s=>I('M3 6h18|M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6|M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2',s),
   badgeCheck:s=>I('M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20|m9 12 2 2 4-4',s),
 };
@@ -358,12 +359,58 @@ function StepsNav({current}){
     return d?html`<button class="step done" onClick=${()=>go(k)}><span class="n">${ic.check(14)}</span><span class="t">${n}</span>${ic.chevR(18)}</button>`
       :html`<div class=${'step'+(cur?' cur':' locked')} aria-current=${cur?'step':null} aria-disabled=${!cur}><span class="n">${i+1}</span><span class="t">${n}</span></div>`})}</div></section>`;
 }
+/* Помощь: компактная строка с экспертом; чат открывается в модалке, история и непрочитанные живут в Root */
+const EXPERT={name:'Елена Смирнова',ini:'ЕС',role:'Ипотечный эксперт'};
 function HelpCard(){
-  const {say}=useApp();
-  return html`<section class="side-card blue"><span class="icon-tile">${ic.folder(20)}</span><h4>Помощь по ипотеке</h4>
-    <p class="desc" style=${{fontSize:'13px'}}>Задайте вопрос и получите больше информации на консультации с нашим специалистом</p>
-    <div><button class="btn outline s" onClick=${()=>say('Чат со специалистом откроется здесь')}>Открыть чат</button></div></section>
-    <p class="faq">Ответы на частые вопросы собрали <a class="link" href="#" onClick=${e=>{e.preventDefault();say('Раздел FAQ — вне прототипа')}}>здесь</a></p>`;
+  const {chat,setChatOpen}=useApp(); const n=chat.unread;
+  return html`<button class="help-row" onClick=${()=>setChatOpen(true)} aria-label=${'Чат с экспертом'+(n?', новых сообщений: '+n:'')}>
+    <span class="help-ava">${EXPERT.ini}<i class="dot" aria-hidden="true"></i></span>
+    <span class="help-t"><b>Вопрос эксперту</b><small>${chat.typing?'Печатает…':n?'Новый ответ в чате':'Онлайн · ответ за ~5 мин'}</small></span>
+    ${n?html`<span class="help-n">${n}</span>`:html`<span class="help-go">${ic.msg(18)}</span>`}</button>`;
+}
+const CHAT_TOPICS={podbor:['Почему банк не подходит по параметрам?','Как работает субсидия застройщика?','Можно ли снизить ставку?'],
+  personal:['Что делать, если паспорт не распознаётся?','Нужен ли СНИЛС созаёмщику?'],family:['Нужно ли согласие супруга?','Брачный договор — что прикладывать?'],
+  income:['Какие справки о доходе принимают банки?','Как учесть доход по ГПХ?'],signing:['Клиент не получил СМС — что делать?','Когда банк ответит по заявке?']};
+const chatReply=t=>{t=t.toLowerCase();
+  if(/субсид|ставк/.test(t))return 'Посмотрела заявку: по выбранным банкам ставку можно снизить на 0,3–1 п.п. через субсидию застройщика или зарплатный проект. Пришлю расчёт в чат в течение 10 минут.';
+  if(/не подходит|параметр/.test(t))return 'Чаще всего мешает первый взнос ниже минимума банка или возраст клиента на конец срока. Откройте банк в подборке — внутри можно поменять срок и взнос именно для него.';
+  if(/паспорт|снилс|документ|справк/.test(t))return 'Подойдёт скан или фото разворота без бликов, до 10 МБ. Если распознавание не сработало — заполните поля вручную, банк сверит их при подаче.';
+  if(/супруг|брачн/.test(t))return 'Если супруг не созаёмщик, большинству банков нужно нотариальное согласие на залог. При брачном договоре с раздельным режимом — приложите его скан вместо согласия.';
+  if(/смс|подпис/.test(t))return 'Проверьте номер клиента на шаге подписания и отправьте код повторно через минуту. Если не поможет — подключу поддержку, напишите удобное время.';
+  return 'Спасибо, вижу вашу заявку. Разберусь и отвечу здесь же — обычно это занимает до 5 минут.'};
+function ChatModal(){
+  const {chat,sendChat,setChatOpen,dealId,say}=useApp();
+  const step=(location.hash.slice(1)||'podbor'), stepName=(STEPS.find(x=>x[0]===step)||[,'Подбор условий'])[1];
+  const [text,setText]=useState(''); const [ctx,setCtx]=useState(true); const box=useRef(null); const ta=useRef(null);
+  const close=()=>setChatOpen(false);
+  useEffect(()=>{const el=box.current;el&&(el.scrollTop=el.scrollHeight)},[chat.msgs.length,chat.typing]);
+  useEffect(()=>{ta.current&&ta.current.focus()},[]);
+  const send=(t,file)=>{const v=(t||'').trim();if(!v&&!file)return;sendChat({text:v,file,ctx:ctx&&!chat.msgs.some(m=>m.ctx)?'Заявка № '+dealId+' · '+stepName:null});setText('');ta.current&&(ta.current.style.height='')};
+  const onKey=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send(text)}};
+  const grow=e=>{setText(e.target.value);const t=e.target;t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'};
+  const topics=CHAT_TOPICS[step]||CHAT_TOPICS.podbor;
+  return html`<div class="overlay" onMouseDown=${e=>{if(e.target===e.currentTarget)close()}} onKeyDown=${e=>e.key==='Escape'&&close()}>
+    <div class="modal chat" role="dialog" aria-modal="true" aria-labelledby="chat-t">
+      <div class="chat-h"><span class="help-ava">${EXPERT.ini}<i class="dot"></i></span>
+        <div class="chat-ht"><h2 id="chat-t">${EXPERT.name}</h2><small>${EXPERT.role} · ${chat.typing?'печатает…':'онлайн, отвечает за ~5 мин'}</small></div>
+        <button class="close" onClick=${close} aria-label="Закрыть">${ic.x(18)}</button></div>
+      <div class="chat-body" ref=${box} aria-live="polite">
+        <div class="msg in"><p>Здравствуйте! Помогу с подбором банков, документами и требованиями к заёмщикам. Заявку видно с моей стороны — пересказывать не нужно.</p></div>
+        ${chat.msgs.map((m,i)=>html`<div key=${i} class=${'msg '+m.from}>
+          ${m.ctx&&html`<span class="msg-ctx">${ic.file(12)} ${m.ctx}</span>`}
+          ${m.file&&html`<span class="msg-file">${ic.clip(14)} ${m.file}</span>`}
+          ${m.text&&html`<p>${m.text}</p>`}<time>${m.at}</time></div>`)}
+        ${chat.typing&&html`<div class="msg in typing" aria-label="Эксперт печатает"><i></i><i></i><i></i></div>`}
+        ${!chat.msgs.length&&html`<div class="chat-topics">${topics.map(t=>html`<button class="qchip" onClick=${()=>send(t)}>${t}</button>`)}</div>`}
+      </div>
+      <div class="chat-foot">
+        ${ctx&&!chat.msgs.some(m=>m.ctx)&&html`<div class="chat-ctx">${ic.file(14)}<span>Приложим заявку № ${dealId} · ${stepName}</span><button aria-label="Не прикладывать заявку" onClick=${()=>setCtx(false)}>${ic.x(14)}</button></div>`}
+        <div class="chat-in">
+          <label class="chat-ic" aria-label="Прикрепить файл">${ic.clip(18)}<input type="file" hidden onChange=${e=>{const f=e.target.files[0];f&&send(text,f.name);e.target.value=''}}/></label>
+          <textarea ref=${ta} rows="1" placeholder="Напишите вопрос" value=${text} onInput=${grow} onKeyDown=${onKey} aria-label="Сообщение"></textarea>
+          <button class="chat-send" disabled=${!text.trim()} onClick=${()=>send(text)} aria-label="Отправить">${ic.send(18)}</button></div>
+        <p class="chat-faq">Работаем ежедневно 9:00–21:00 МСК · <a class="link" href="#" onClick=${e=>{e.preventDefault();say('Раздел FAQ — вне прототипа')}}>Частые вопросы</a></p>
+      </div></div></div>`;
 }
 function StepFooter(){
   return html`<span class="autosave">${ic.done2(16)}Изменения сохраняются автоматически</span>`;
@@ -1377,6 +1424,14 @@ function Root(){
   const [sent,setSent]=useState([]);
   const [toast,setToast]=useState('');
   const [prescore,setPrescore]=useState(null); const [psOpen,setPsOpen]=useState(false);
+  /* чат с экспертом: история сохраняется между открытиями; ответ приходит и при закрытой модалке — тогда счётчик на виджете */
+  const [chat,setChat]=useState({msgs:[],typing:false,unread:0}); const [chatOpen,setChatOpenS]=useState(false);
+  const chatOpenRef=useRef(false);
+  const setChatOpen=v=>{chatOpenRef.current=v;setChatOpenS(v);if(v)setChat(c=>({...c,unread:0}))};
+  const sendChat=({text,file,ctx})=>{const at=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    setChat(c=>({...c,msgs:[...c.msgs,{from:'out',text,file,ctx,at}]}));
+    setTimeout(()=>setChat(c=>({...c,typing:true})),700);
+    setTimeout(()=>{const open=chatOpenRef.current;setChat(c=>({typing:false,unread:open?0:c.unread+1,msgs:[...c.msgs,{from:'in',text:file&&!text?'Файл получила, посмотрю и отвечу здесь.':chatReply(text||''),at:new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}]}));if(!open)setToast('Эксперт ответил в чате')},2600)};
   const [termBy,setTermBy]=useState({});
   /* первый взнос, изменённый для отдельного банка */
   const [downBy,setDownBy]=useState({});
@@ -1388,7 +1443,7 @@ function Root(){
   const loan=Math.max(0,f.price-f.down-(f.certOn?f.certAmount:0));
   const cut=f.subsidyOn&&f.domrf?f.domrf.cut:0;
   const offers=useMemo(()=>BANKS.map(([name,ini,d],i)=>{const sc=f.salaryBank===name?SALARY_CUT[name]||0:0;const rate=Math.max(0.1,prog.r+d-cut-sc);const pay=annuity(loan,rate,f.term);return {name,ini,delta:d,rate,pay,income:pay/0.6,salaryCut:sc,commission:(i*7)%11}}),[f.program,loan,f.term,cut,f.salaryBank]);
-  const value={psOpen,setPsOpen,termBy,setTermBy,downBy,setDownBy,recipsOf:n=>recips[n]||[mailsOf(n)[0].value],setRecipsOf:(n,v)=>setRecips(o=>({...o,[n]:v})),prescore,setPrescore,dealId,co,setCo,f,setF,selected,setSelected,client,setClient,a,setA,files,setFiles,sign,setSign,done,sent,setSent,toast,
+  const value={chat,sendChat,chatOpen,setChatOpen,psOpen,setPsOpen,termBy,setTermBy,downBy,setDownBy,recipsOf:n=>recips[n]||[mailsOf(n)[0].value],setRecipsOf:(n,v)=>setRecips(o=>({...o,[n]:v})),prescore,setPrescore,dealId,co,setCo,f,setF,selected,setSelected,client,setClient,a,setA,files,setFiles,sign,setSign,done,sent,setSent,toast,
     say:setToast,markDone:k=>setDone(o=>({...o,[k]:true})),calc:(()=>{const downOf=n=>downBy[n]!=null?downBy[n]:f.down;const loanOf=n=>Math.max(0,f.price-downOf(n)-(f.certOn?f.certAmount:0));const termOf=n=>termBy[n]||f.term;
       return {loan,cut,offers,termOf,downOf,loanOf,payOf:(o,minus=0)=>annuity(loanOf(o.name),o.rate-minus,termOf(o.name)),custom:n=>(termBy[n]!=null&&termBy[n]!==f.term)||(downBy[n]!=null&&downBy[n]!==f.down)}})(),
     sendToBanks:names=>setSent(o=>[...o,...names.filter(n=>!o.some(x=>x.name===n)).map(n=>({name:n,status:'sent',at:nowAt()}))])};
@@ -1436,6 +1491,6 @@ function Root(){
   value.devJump=devJump;
   useEffect(()=>{if(!['personal','income'].includes(target)&&who!=='main')setWho('main')},[target]);
   const Page={'':Deals,podbor:Podbor,personal:Personal,family:Family,income:Income,signing:Signing,status:Status,client:Client}[target];
-  return html`<${Ctx.Provider} value=${value}><${Page} key=${target}/><${Toast}/><//>`;
+  return html`<${Ctx.Provider} value=${value}><${Page} key=${target}/>${chatOpen&&html`<${ChatModal}/>`}<${Toast}/><//>`;
 }
 ReactDOM.createRoot(document.getElementById('root')).render(html`<${Root}/>`);
