@@ -1600,7 +1600,7 @@ function PrescoreModal({onClose}){
         return {...m,[p.pid]:{...e,a:{...e.a,fio:e.a.fio||fio,passNum:e.a.passNum||passNum},files:e.files.passport.length||!docs.length?e.files:{...e.files,passport:docs}}}})});
     onClose();say(r.people.length>1?'Данные участников перенесены в анкету — проверьте их на шаге «Персональные данные»':'Данные заёмщика перенесены в анкету')};
   const r=prescore;
-  return html`<${ModalShell} wide=${phase==='result'} title="Прескоринг" sub=${phase==='result'?'Предварительная оценка по данным БКИ от '+r.date:'Предварительная оценка по данным бюро кредитных историй. На заявку в банк не влияет'} onClose=${onClose}>
+  return html`<${ModalShell} wide=${phase==='result'} title="Прескоринг" sub=${phase==='result'?'Предварительная оценка по данным БКИ от '+r.date:null} onClose=${onClose}>
     ${phase==='form'&&html`<div class="stack">
       ${ppl.some(done)&&html`<p class="hint" style=${{margin:0}}>Проверенных участников заново не запрашиваем — бюро проверит только новых</p>`}
       ${ppl.map((p,i)=>done(p)?html`<div class="ps-done" key=${p.pid}><span class="avatar">${initials([p.last,p.first].join(' '))}</span>
