@@ -243,16 +243,20 @@ function BankTerm({name,approved}){
         <button aria-label="Увеличить срок" disabled=${t>=30} onClick=${()=>set(t+1)}>${ic.plus(16)}</button></div><span class="desc" style=${{fontSize:'13px'}}>${plural(t,'год','года','лет')}</span></div>
   </div>`;
 }
+/* Общая строка карточек «Параметры кредита» и «Выбранные банки»: банки слева, программа и сумма кредита справа */
+function CreditSummary({list}){
+  const {calc,f}=useApp(); const shown=list.slice(0,3), extra=Math.max(0,list.length-3);
+  return html`<div class="cs-row">
+    ${list.length?html`<div class="avatars">${shown.map(b=>html`<span class="avatar" title=${b.name}>${b.ini}</span>`)}${extra>0&&html`<span class="avatar">+${extra}</span>`}</div>`:html`<span class="cs-none">Банки не выбраны</span>`}
+    <div class="cs-sum"><span>${f.program}</span><b class="num">${rub(calc.loan)}</b></div></div>`;
+}
 function CreditParams({banks,backLabel='Изменить параметры подбора'}){
   const {selected,calc,f,termBy,setTermBy,say}=useApp();
   const names=banks||[...selected]; const list=(names.length?names:['Абсолют Банк','Уралсиб']).map(n=>calc.offers.find(o=>o.name===n)).filter(Boolean);
   const [open,setOpen]=useState(false);
-  const shown=list.slice(0,3), extra=Math.max(0,list.length-3);
   return html`<section class="side-card cp">
     <button class="cp-h" onClick=${()=>setOpen(!open)} aria-expanded=${open}><h4>Параметры кредита</h4><span class=${'cp-chev'+(open?' up':'')}>${ic.chev(20)}</span></button>
-    <div class="row" style=${{justifyContent:'space-between'}}>
-      <div class="avatars">${shown.map(b=>html`<span class="avatar" title=${b.name}>${b.ini}</span>`)}${extra>0&&html`<span class="avatar">+${extra}</span>`}</div>
-      <div style=${{textAlign:'right'}}><span class="desc" style=${{fontSize:'12px'}}>${f.program}</span><div style=${{fontSize:'20px',fontWeight:700}} class="num">${rub(calc.loan)}</div></div></div>
+    <${CreditSummary} list=${list}/>
     ${open&&html`<dl class="cp-rows cp-params num">
         <dt>Цель</dt><dd>${f.goal}</dd>
         <dt>Программа</dt><dd>${f.program}</dd>
@@ -268,12 +272,12 @@ function CreditParams({banks,backLabel='Изменить параметры по
 /* Боковая карточка на шаге подбора: что выбрано и на какую сумму */
 function PickedBanks({onRemove}){
   const {selected,calc,f,sent}=useApp(); const list=calc.offers.filter(o=>selected.has(o.name));
-  return html`<section class="side-card"><div class="row" style=${{justifyContent:'space-between'}}><h4>Выбранные банки</h4><span class=${'badge num'+(list.length?' accent':'')}>${list.length}</span></div>
-    <div class="row" style=${{justifyContent:'space-between'}}><span class="desc" style=${{fontSize:'13px'}}>${f.program}</span><b class="num" style=${{fontSize:'20px'}}>${rub(calc.loan)}</b></div>
+  return html`<section class="side-card cp"><div class="cp-h"><h4>Выбранные банки</h4><span class=${'badge num'+(list.length?' accent':'')}>${list.length}</span></div>
+    <${CreditSummary} list=${list}/>
     ${isSberOnly(selected)&&html`<div class="sber-note">${ic.info(14)}<span>Короткая анкета: 3 шага и отправка без подписания</span></div>`}
     ${list.length?html`<div class="picked">${list.map(o=>html`<div class="pk" key=${o.name}><span class="avatar">${o.ini}</span><div class="tx"><b>${o.name}</b><small class="num">${(x=>x?(x.status==='approved'?'Одобрено':'Отправлено')+' '+fmtAt(x.at):pct(o.rate)+' · '+rub(o.pay)+' в месяц')(sent.find(q=>q.name===o.name))}</small></div>
         ${sent.some(q=>q.name===o.name)?html`<span class="pk-lock" title="Анкета уже отправлена в банк — убрать нельзя" aria-label="Анкета отправлена, убрать нельзя">${ic.lock(16)}</span>`:html`<button class="part-x" aria-label=${'Убрать '+o.name} onClick=${()=>onRemove(o.name)}>${ic.x(16)}</button>`}</div>`)}</div>`
-      :html`<p class="desc" style=${{fontSize:'13px',margin:0}}>Отметьте банки в списке — они появятся здесь</p>`}
+      :html`<p class="desc cs-empty">Отметьте банки в списке — они появятся здесь</p>`}
   </section>`;
 }
 /* Прескоринг в боковой колонке: до проверки — короткое объяснение и кнопка, после — рейтинг и вход в отчёт */
