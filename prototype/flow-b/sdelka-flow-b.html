@@ -926,6 +926,14 @@ body{margin:0}
 .who-wrap .who-head{padding-bottom:0;border-bottom:0}
 .noinc{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;background:var(--color-surface-page);border:1px solid var(--color-border-default);font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--color-text-secondary);white-space:nowrap}
 .ps-side-name .noinc{height:18px;font-size:10px;padding:0 6px;vertical-align:1px}
+.kids-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.kid-card{display:flex;flex-direction:column;gap:12px;padding:20px;border-radius:var(--radius-20);background:var(--color-surface-card);min-width:0}
+.kid-h{display:flex;align-items:center;justify-content:space-between;gap:8px}.kid-h h3{margin:0;font-size:16px;font-weight:600}
+.kid-age{font-size:12px;color:var(--color-text-secondary);padding:2px 8px;border-radius:999px;background:var(--color-surface-white)}
+.kid-card .upz{background:var(--color-surface-white)}
+.kid-card .upz{flex-wrap:wrap;row-gap:4px}
+.kid-card .upz .tx{flex:1 1 160px;min-width:0}
+.kid-card .upz .act{flex-basis:100%;padding-left:52px;text-align:left}
 </style>
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1416,7 +1424,7 @@ function useValidation(){
   return {errs,tried,run,setErrs,clear:k=>setErrs(o=>{const n={...o};delete n[k];return n})};
 }
 /* Названия полей для плашки ошибок — чтобы было понятно, что именно не заполнено */
-const FIELD_NAMES={passport:'Паспорт',fio:'ФИО',birthDate:'Дата рождения',birthPlace:'Место рождения',passNum:'Серия и номер',passDate:'Когда выдан',passCode:'Код подразделения',passWho:'Кем выдан',regAddr:'Адрес регистрации',
+const FIELD_NAMES={kids:'Несовершеннолетние дети',cbd:'Дата рождения ребёнка',cdoc:'Свидетельство о рождении',kidsRule:'Условия семейной ипотеки',passport:'Паспорт',fio:'ФИО',birthDate:'Дата рождения',birthPlace:'Место рождения',passNum:'Серия и номер',passDate:'Когда выдан',passCode:'Код подразделения',passWho:'Кем выдан',regAddr:'Адрес регистрации',
   phone:'Номер телефона',snils:'СНИЛС',email:'Электронная почта',inn:'ИНН физлица',factAddr:'Фактический адрес',
   income:'Основной доход',org:'Организация',orgInn:'ИНН организации',position:'Должность',workPhone:'Рабочий телефон',startDate:'Дата начала работы',
   eduLevel:'Образование',expYears:'Общий трудовой стаж',jobs3:'Мест работы за 3 года',exp5:'Стаж за последние 5 лет',prevSer:'Серия предыдущего паспорта',prevNo:'Номер предыдущего паспорта',prevDate:'Когда выдан предыдущий паспорт',monthsHere:'Месяцев на текущем месте',level:'Уровень образования',year:'Год окончания',place:'Учебное заведение'};
@@ -1429,7 +1437,7 @@ const firstErrAlert=(errs,title)=>{const keys=Object.keys(errs);if(!keys.length)
   const txt=!shown.length?`Проверьте поля, отмеченные красным: ${keys.length} ${plural(keys.length,'поле требует','поля требуют','полей требуют')} внимания`
     :names.length===1&&rest===0?`Заполните поле ${shown[0]}`
     :`Проверьте ${rest>0?'поля '+shown.join(', ')+' и ещё '+rest:'поля '+listRu(shown)}`;
-  return html`<${Alert} type="warning" title=${title}>${txt}. Остальное уже сохранено<//>`};
+  return html`<${Alert} type="warning" title=${title}>${txt}<//>`};
 
 /* ---------- 1.0 Подбор условий ---------- */
 function Podbor(){
@@ -2020,17 +2028,47 @@ function Personal(){
       </div></div>`}<//>`;
 }
 /* ---------- 1.2 ---------- */
+/* Дети: на каждого — дата рождения, свидетельство и отметка об инвалидности.
+   Для «Семейной ипотеки» дети обязательны: хотя бы один младше 7 лет на дату договора или с инвалидностью до 18 лет; свидетельства обязательны */
+const KID_N=['Нет','1','2','3','4','5','6'];
+const parseD=s=>{const m=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(s||'');if(!m)return null;const d=new Date(+m[3],+m[2]-1,+m[1]);return d.getDate()===+m[1]&&d.getMonth()===+m[2]-1?d:null};
+const ageOf=d=>{const n=new Date();let y=n.getFullYear()-d.getFullYear();if(n<new Date(n.getFullYear(),d.getMonth(),d.getDate()))y--;return y};
 function Family(){
-  const {a,setA,markDone}=useApp(); const set=(k,val)=>setA(o=>({...o,[k]:val}));
-  return html`<${AnketaPage} step="family" onNext=${()=>{markDone('family');go('income')}}>
+  const {a,setA,markDone,f}=useApp(); const v=useValidation();
+  const set=(k,val)=>{setA(o=>({...o,[k]:val}));v.clear(k)};
+  const fam=/Семейная/.test(f.program);
+  const n=a.kids==='Нет'?0:+a.kids||0;
+  const kids=Array.from({length:n},(_,i)=>(a.children||[])[i]||{bd:'',docs:[],dis:false});
+  const setKids=cnt=>setA(o=>{const c=o.children||[];return {...o,kids:cnt,children:Array.from({length:cnt==='Нет'?0:+cnt},(_,i)=>c[i]||{bd:'',docs:[],dis:false})}});
+  const updK=(i,k,val)=>{setA(o=>{const c=Array.from({length:n},(_,j)=>(o.children||[])[j]||{bd:'',docs:[],dis:false});c[i]={...c[i],[k]:typeof val==='function'?val(c[i][k]):val};return {...o,children:c}});v.clear((k==='bd'?'cbd':k==='docs'?'cdoc':'kidsRule')+(k==='dis'?'':i));v.clear('kidsRule')};
+  /* при семейной ипотеке подтягиваем число детей и инвалидность из подбора */
+  useEffect(()=>{if(fam&&a.kids==='Нет'&&f.kids){const cnt=String(Math.min(6,f.kids));setA(o=>({...o,kids:cnt,children:Array.from({length:+cnt},(_,i)=>({bd:'',docs:[],dis:i===0&&!!f.kidsDisabled}))}))}},[]);
+  const next=()=>{const r={};
+    if(fam&&!n)r.kids='Для семейной ипотеки укажите детей — без них программа недоступна';
+    kids.forEach((k,i)=>{const d=parseD(k.bd);
+      r['cbd'+i]=!d?'Введите дату рождения в формате дд.мм.гггг':d>new Date()?'Дата рождения не может быть в будущем':ageOf(d)>=18?'Указывайте только несовершеннолетних детей':'';
+      r['cdoc'+i]=fam&&!k.docs.length?'Для семейной ипотеки нужно свидетельство о рождении':''});
+    const allDates=kids.every(k=>parseD(k.bd));
+    if(fam&&n&&allDates&&!kids.some(k=>ageOf(parseD(k.bd))<7||k.dis))r.kidsRule='Семейная ипотека доступна, если хотя бы одному ребёнку меньше 7 лет или у ребёнка есть инвалидность';
+    if(v.run(r)){markDone('family');go('income')}};
+  return html`<${AnketaPage} step="family" onNext=${next} alert=${firstErrAlert(v.errs,'Не хватает данных о семье')}>
     <div class="stack"><h1 class="sec">Семейное положение</h1><p class="desc">Укажите семейное положение и количество несовершеннолетних детей</p>
+      ${fam&&html`<${Alert} title="Выбрана семейная ипотека">Нужен хотя бы один ребёнок младше 7 лет на дату кредитного договора или ребёнок с инвалидностью до 18 лет. Свидетельства о рождении обязательны<//>`}
       <div class="grid g3">
         <${SelectField} label="Семейное положение" value=${a.marital} items=${['Холост / не замужем','Женат / замужем','В разводе','Вдовец / вдова','Гражданский брак']} onPick=${x=>set('marital',x)}/>
         <${SelectField} label="Супруг исключён из сделки" value=${a.spouseExcluded} items=${['Нет','Да, по брачному договору','Да, по нотариальному согласию']} onPick=${x=>set('spouseExcluded',x)}/>
-        <${SelectField} label="Несовершеннолетние дети" value=${a.kids} items=${['Нет','1','2','3','4 и больше']} onPick=${x=>set('kids',x)}/>
+        <${SelectField} label="Несовершеннолетние дети" value=${KID_N.includes(a.kids)?a.kids:'Нет'} items=${KID_N} error=${v.errs.kids} helper=${fam?'Обязательно для семейной ипотеки':null} onPick=${x=>{setKids(x);v.clear('kids')}}/>
       </div>
       ${a.marital==='Женат / замужем'&&html`<${Switch} checked=${a.spouseCo} onChange=${x=>set('spouseCo',x)} label="Супруг(а) участвует как созаёмщик"/>`}
       ${a.spouseCo&&html`<${Alert} title="Добавим созаёмщика после основной анкеты">Ссылку на анкету для супруга(и) можно будет отправить на шаге подписания<//>`}
+      ${n>0&&html`<div class="kids-grid">${kids.map((k,i)=>{const d=parseD(k.bd),age=d&&d<=new Date()?ageOf(d):null;return html`<div class="kid-card" key=${'kid'+i}>
+        <div class="kid-h"><h3>Ребёнок ${i+1}</h3>${age!=null&&age<18&&html`<span class="kid-age">${age===0?'до года':age+' '+plural(age,'год','года','лет')}</span>`}</div>
+        <${Field} id=${'k-bd'+i} label=${'Дата рождения ребёнка '+(i+1)} value=${k.bd} placeholder="дд.мм.гггг" inputMode="numeric" mask="date" error=${v.errs['cbd'+i]} onChange=${x=>updK(i,'bd',x)}/>
+        <${UploadZone} id=${'k-doc'+i} title=${'Свидетельство о рождении ребёнка '+(i+1)} error=${v.errs['cdoc'+i]} onFiles=${fs=>updK(i,'docs',o=>[...o,...fs.map(fileObj)])}/>
+        ${!fam&&!k.docs.length&&html`<p class="helper" style=${{margin:'-4px 0 0'}}>Необязательно для выбранной программы</p>`}
+        ${k.docs.map((x,j)=>html`<${FileItem} f=${x} onRemove=${()=>updK(i,'docs',o=>o.filter((_,q)=>q!==j))}/>`)}
+        <${Switch} checked=${k.dis} onChange=${x=>updK(i,'dis',x)} label=${'Ребёнок '+(i+1)+' с инвалидностью'}/></div>`})}</div>`}
+      ${v.errs.kidsRule&&html`<${Alert} type="warning" title="Условия семейной ипотеки не выполнены">${v.errs.kidsRule}. Проверьте даты рождения или выберите другую программу на шаге «Подбор условий»<//>`}
       <p class="desc" style=${{fontSize:'13px'}}>Данные семьи используются для проверки комплекта документов</p></div><//>`;
 }
 /* ---------- 1.3 ---------- */
