@@ -789,14 +789,14 @@ function PrescoreModal({onClose}){
           <span class=${'badge '+(p.score>=861?'success':p.score>=633?'':'warning')}>${p.score}</span></div>`
         :html`<${PsForm} key=${p.pid} idp=${'-'+i} title=${ppl.length>1?roleOf(i):null} v=${p} setV=${setV(p.pid)} errs=${errs[p.pid]||{}} setErrs=${setE(p.pid)}
             src=${i===0?PASSPORT_DATA:CO_PASSPORT} onRemove=${i>0?()=>{setPpl(o=>o.filter(x=>x.pid!==p.pid));setErrs(o=>{const n={...o};delete n[p.pid];return n})}:null}/>`)}
-      ${ppl.length<4&&html`<div class="ps-add"><button class="btn outline s" onClick=${add}>${ic.plus(16)} Добавить созаёмщика</button><span class="hint">можно ещё ${4-ppl.length}, всего до 4 участников</span></div>`}
+      ${ppl.length<4&&html`<button class="ps-add-btn" onClick=${add}>${ic.plus(16)}<b>Добавить созаёмщика</b><span>можно ещё ${4-ppl.length}, всего до 4 участников</span></button>`}
     </div>
     <div class="modal-act"><button class="btn outline" onClick=${()=>r&&ppl.some(done)?setPhase('result'):onClose()}>${r&&ppl.some(done)?'Назад к результату':'Отмена'}</button>
       <button class="btn primary" disabled=${!fresh.length||fresh.some(p=>p.recog==='busy')} onClick=${run}>${ppl.some(done)?(fresh.length>1?'Проверить '+fresh.length+' новых участников':'Проверить нового участника'):ppl.length>1?'Запустить прескоринг · '+ppl.length+' участника':'Запустить прескоринг'}</button></div>`}
     ${phase==='loading'&&html`<div class="ps-load"><span class="spinner"></span><b>Запрашиваем кредитную историю</b><span class="desc">Обычно это занимает несколько секунд</span></div>`}
     ${phase==='result'&&html`<div class="stack">
       ${r.people.map((p,i)=>html`<${PsResult} key=${p.pid} p=${p} i=${i}/>`)}
-      ${r.people.length<4&&html`<div class="ps-add"><button class="btn outline s" onClick=${add}>${ic.plus(16)} Добавить созаёмщика</button><span class="hint">Можно ещё ${4-r.people.length} — проверим только нового</span></div>`}
+      ${r.people.length<4&&html`<button class="ps-add-btn" onClick=${add}>${ic.plus(16)}<b>Добавить созаёмщика</b><span>можно ещё ${4-r.people.length} — проверим только нового</span></button>`}
       <div class="ps-reco">${r.people.length>1?'С учётом всех участников — ':''}${(m=>m>=861?'высокая':m>=633?'хорошая':'низкая')(Math.min(...r.people.map(p=>p.score)))} вероятность одобрения в ${r.banks} из ${r.total} банков подборки</div>
     </div>
     <div class="modal-act"><button class="btn outline" style=${{marginRight:'auto'}} disabled=${pdfBusy} onClick=${downloadPdf}>${pdfBusy?html`<span class="spinner sm"></span>Готовим PDF`:html`${ic.download(16)}PDF для клиента`}</button>
