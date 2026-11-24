@@ -342,11 +342,13 @@ function PrescoreCard(){
   if(!r)return html`<section class="side-card ps-side"><div class="ps-side-h"><span class="icon-tile">${ic.gauge(20)}</span>
       <div><h4>Прескоринг клиента</h4><p class="desc">Получить рейтинг и портрет заемщика за несколько секунд</p></div></div>
     <button class="btn outline s" onClick=${()=>setPsOpen(true)}>Проверить клиента</button></section>`;
-  const p=r.people[0], lv=scoreLvl(p.score);
-  return html`<section class="side-card ps-side"><div class="row" style=${{justifyContent:'space-between'}}><h4>Прескоринг</h4><span class=${'lvl '+lv[1]}>${lv[0]}</span></div>
-    <div class="ps-side-score"><b class="num">${p.score}</b><span>из 999</span></div>
-    <div class="ps-scale"><i style=${{left:(p.score/999*100)+'%'}}></i></div>
-    <p class="desc ps-side-who">${p.name} · ${r.date}</p>
+  /* по каждому проверенному участнику: ФИО, балл в цвете своей зоны шкалы, шкала и подпись */
+  return html`<section class="side-card ps-side"><div class="row" style=${{justifyContent:'space-between'}}><h4>Прескоринг</h4><span class="ps-side-date">${r.date}</span></div>
+    ${r.people.map(p=>{const lv=scoreLvl(p.score);return html`<div class="ps-side-p" key=${p.pid}>
+      <div class="ps-side-name"><b title=${p.name}>${p.name}</b>${r.people.length>1&&html`<small>${p.role}</small>`}</div>
+      <div class="ps-side-score"><b class=${'num sc-'+lv[1]}>${p.score}</b><span>из 999</span><span class=${'lvl xs '+lv[1]}>${lv[0]}</span></div>
+      <div class="ps-scale"><i style=${{left:(p.score/999*100)+'%'}}></i></div>
+      <p class="ps-side-cap">Кредитный рейтинг</p></div>`})}
     <button class="btn outline s" onClick=${()=>setPsOpen(true)}>Открыть отчёт</button></section>`;
 }
 function StepsNav({current}){
@@ -687,7 +689,7 @@ function PsForm({v,setV,errs,setErrs,idp='',title,onRemove,src}){
 function PsResult({p,i}){
   const lv=scoreLvl(p.score); const [full,setFull]=useState(false);
   return html`<div class="ps-res">
-    <div class="ps-score"><div class="ps-num"><b>${p.score}</b><span>из 999</span></div>
+    <div class="ps-score"><div class="ps-num"><b class=${'sc-'+lv[1]}>${p.score}</b><span>из 999</span></div>
       <div class="ps-meta"><div class="row" style=${{gap:'8px'}}><b style=${{fontSize:'15px'}}>${p.name}</b><span class="desc" style=${{fontSize:'12px'}}>${p.role||(i===0?'Заёмщик':'Созаёмщик')}</span></div>
         <span class=${'lvl '+lv[1]}>${lv[0]} рейтинг</span>
         <div class="ps-scale"><i style=${{left:(p.score/999*100)+'%'}}></i></div>
