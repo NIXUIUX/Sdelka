@@ -770,6 +770,11 @@ body{margin:0}
 .bank .why-warn svg{flex:none}
 @media(max-width:860px){.pf-span{grid-column:span 2}}
 @media(max-width:520px){.pf-more-b{padding:4px 12px 12px}.pf-more-t span{white-space:normal}}
+/* Прескоринг v3: пять полей паспорта и распознавание скана */
+.ps-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px}
+.ps-grid>:nth-child(4){grid-column:1}
+.ps-recog{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--color-text-secondary)}
+@media(max-width:640px){.ps-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ps-grid>:nth-child(-n+3){grid-column:1/-1}.ps-grid>:nth-child(4){grid-column:auto}}
 </style>
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1294,23 +1299,45 @@ const psKey=rep=>{const all=Object.fromEntries(rep.flatMap(([,rows])=>rows).map(
   return [['Банкротство',all['Банкротство']],['Дееспособность',all['Дееспособность']],['Суды',all['Судебные споры и обязательства']],['Просрочки',all['Активные просрочки']],['Исп. производства',all['Результат проверки']],['Запросы за 30 дней',all['Запросы за 30 дней']]]
     .map(([t,r])=>[t,t==='Исп. производства'?(r[2]==='ok'?'Нет':'Штраф ГИБДД'):r[1],r[2]])};
 const pplOf=ps=>ps?ps.people:[];
-function PsPerson({p,i,upd,del,errs}){
-  const e=k=>errs[k+i];
-  return html`<div class="ps-person">
-    <div class="row" style=${{justifyContent:'space-between'}}><h3>${i===0?'Заёмщик':'Созаёмщик'+(i>1?' '+i:'')}${p.name?html` <span class="desc" style=${{fontWeight:400}}>· ${p.name}</span>`:''}</h3>
-      ${i>0&&html`<button class="part-x" aria-label="Убрать созаёмщика" onClick=${del}>${ic.x(16)}</button>`}</div>
-    <${Field} id=${'ps-phone'+i} label="Телефон" mask="phone" value=${p.phone} onChange=${v=>upd({phone:v},'phone')} error=${e('phone')} helper="На этот номер придёт код подтверждения согласия"/>
+/* Форма прескоринга по API подрядчика: скан паспорта (PDF/JPG до 10 МБ) распознаётся в те же пять полей, их можно ввести и вручную */
+const PS_EMPTY={last:'',first:'',middle:'',series:'',number:'',docs:[],recog:'idle',auto:{}};
+const PS_FIELDS=[['last','Фамилия','фамилию'],['first','Имя','имя'],['middle','Отчество','отчество']];
+const psFromPassport=()=>{const [last,first,middle]=PASSPORT_DATA.fio.split(' ');const [ser,num]=PASSPORT_DATA.passNum.split(' ');return {last,first,middle,series:MASKS.passSer(ser),number:num}};
+function psCheck(v){const e={};
+  for(const [k,,acc] of PS_FIELDS){const t=v[k].trim();if(!t)e[k]='Укажите '+acc;else if(!/^[А-Яа-яЁё]+(-[А-Яа-яЁё]+)?$/.test(t))e[k]='Только русские буквы, как в паспорте'}
+  if(digits(v.series).length!==4)e.series='Серия — 4 цифры';
+  if(digits(v.number).length!==6)e.number='Номер — 6 цифр';
+  return e}
+function PsForm({v,setV,errs,setErrs}){
+  const set=(k,val)=>{setV(o=>({...o,[k]:val,auto:{...o.auto,[k]:false}}));setErrs(o=>({...o,[k]:''}))};
+  const onFiles=fs=>{const f=fs[0];if(!f)return;
+    if(!/\.(pdf|jpe?g)$/i.test(f.name)){setErrs(o=>({...o,docs:'Нужен файл PDF или JPG'}));return}
+    if(f.size>10*1048576){setErrs(o=>({...o,docs:'Файл больше 10 МБ — сожмите его или отсканируйте заново'}));return}
+    setErrs(o=>({...o,docs:''}));setV(o=>({...o,docs:[fileObj(f)],recog:'busy'}));
+    /* демо: очень маленький файл считаем нечитаемым сканом */
+    setTimeout(()=>{if(f.size<20*1024){setV(o=>({...o,recog:'fail'}));return}
+      const d=psFromPassport();setV(o=>({...o,...d,recog:'done',auto:{last:true,first:true,middle:true,series:true,number:true}}));
+      setErrs({})},1200)};
+  return html`<div class="stack">
     <div class="stack" style=${{gap:'12px'}}>
-      <${UploadZone} id=${'ps-pass'+i} title="Паспорт РФ · разворот с фото" error=${e('docs')} onFiles=${fs=>upd({docs:[...p.docs,...fs.map(fileObj)]},'docs')}/>
-      ${p.docs.map((f,j)=>html`<${FileItem} f=${f} onRemove=${()=>upd({docs:p.docs.filter((_,k)=>k!==j)})}/>`)}</div>
-    <div><${Checkbox} showLabel checked=${p.agree} onChange=${v=>upd({agree:v},'agree')} label="Дал согласие на запрос кредитной истории"/><${FieldError} text=${e('agree')}/></div>
+      <${UploadZone} id="ps-pass" title="Скан паспорта РФ · разворот с фото" limits="PDF или JPG до 10 МБ" error=${errs.docs} onFiles=${onFiles}/>
+      ${v.docs.map(f=>html`<${FileItem} f=${f} onRemove=${()=>setV(o=>({...o,docs:[],recog:'idle',auto:{}}))}/>`)}
+      ${v.recog==='busy'&&html`<div class="ps-recog"><span class="spinner sm"></span>Распознаём паспорт — подставим данные в поля ниже</div>`}
+      ${v.recog==='fail'&&html`<${Alert} type="warning" title="Не удалось распознать паспорт">Заполните поля вручную или загрузите более чёткий скан<//>`}
+    </div>
+    <p class="hint" style=${{margin:0}}>${v.recog==='done'?'Данные подставлены из скана — сверьте их с паспортом':'Загрузите скан или заполните поля вручную — все поля обязательны'}</p>
+    <div class="ps-grid">
+      ${PS_FIELDS.map(([k,l])=>html`<${Field} id=${'ps-'+k} label=${l} mask="name" value=${v[k]} onChange=${x=>set(k,x)} error=${errs[k]}/>`)}
+      <${Field} id="ps-series" label="Серия" mask="passSer" inputMode="numeric" value=${v.series} onChange=${x=>set('series',x)} error=${errs.series} helper="4 цифры"/>
+      <${Field} id="ps-number" label="Номер" mask="passNo" inputMode="numeric" value=${v.number} onChange=${x=>set('number',x)} error=${errs.number} helper="6 цифр"/>
+    </div>
   </div>`;
 }
 function PsResult({p,i}){
   const lv=scoreLvl(p.score); const [full,setFull]=useState(false);
   return html`<div class="ps-res">
     <div class="ps-score"><div class="ps-num"><b>${p.score}</b><span>из 999</span></div>
-      <div class="ps-meta"><div class="row" style=${{gap:'8px'}}><b style=${{fontSize:'15px'}}>${p.name}</b><span class="desc" style=${{fontSize:'12px'}}>${i===0?'Заёмщик':'Созаёмщик'}</span></div>
+      <div class="ps-meta"><div class="row" style=${{gap:'8px'}}><b style=${{fontSize:'15px'}}>${p.name}</b><span class="desc" style=${{fontSize:'12px'}}>${p.role||(i===0?'Заёмщик':'Созаёмщик')}</span></div>
         <span class=${'lvl '+lv[1]}>${lv[0]} рейтинг</span>
         <div class="ps-scale"><i style=${{left:(p.score/999*100)+'%'}}></i></div>
         <div class="ps-ticks">${[1,633,861,979].map((v,k)=>html`<span style=${{left:(v/999*100)+'%',transform:k===0?'none':k===3?'translateX(-100%)':'translateX(-50%)'}}>${v}</span>`)}</div></div></div>
@@ -1331,7 +1358,7 @@ function psReportHtml(r,dealId){
   return `<div class="pdf-page">
     <div class="pdf-h"><div><div class="pdf-logo">сделка.рф</div><div class="pdf-sub">Отчёт по прескорингу · заявка № ${dealId}</div></div><div class="pdf-date">${esc(r.date)}</div></div>
     ${r.people.map((p,i)=>{const lv=scoreLvl(p.score);return `<div class="pdf-person">
-      <div class="pdf-ph"><div><div class="pdf-name">${esc(p.name)}</div><div class="pdf-role">${i===0?'Заёмщик':'Созаёмщик'}</div></div>
+      <div class="pdf-ph"><div><div class="pdf-name">${esc(p.name)}</div><div class="pdf-role">${p.role||(i===0?'Заёмщик':'Созаёмщик')}</div></div>
         <div class="pdf-score" style="color:${col[lv[1]]}"><b>${p.score}</b><span>из 999 · ${lv[0].toLowerCase()} рейтинг</span></div></div>
       <div class="pdf-grid">${p.report.map(([h,rows])=>`<div class="pdf-sec"><h5>${esc(h)}</h5>${rows.map(([t,v,k])=>`<div class="pdf-row"><span>${esc(t)}</span><b${k!=='ok'?' style="color:#946319"':''}>${esc(v)}</b></div>`).join('')}</div>`).join('')}</div></div>`}).join('')}
     <p class="pdf-note">Предварительная оценка по данным бюро кредитных историй. Не является решением банка и офертой. Окончательные условия определяет банк после рассмотрения заявки</p>
@@ -1364,57 +1391,32 @@ function PrescoreModal({onClose}){
   const {prescore,setPrescore,a,setA,files,setFiles,co,setCo,client,say,calc,dealId}=useApp();
   const [pdfBusy,setPdfBusy]=useState(false);
   const downloadPdf=async()=>{setPdfBusy(true);try{const blob=await makePrescorePdf(prescore,dealId);await savePdf(blob,`Прескоринг · заявка ${dealId}.pdf`);say('PDF-отчёт готов — его можно распечатать или отправить клиенту')}catch(e){const c=e&&e.code;say(c==='declined'?'Сохранение отменено':c==='rate_limited'?'Подождите — окно сохранения уже открыто':e&&e.message==='load'?'Не удалось загрузить модуль PDF — проверьте интернет':'Не получилось сформировать PDF')}finally{setPdfBusy(false)}};
-  const prev=pplOf(prescore);
-  const init=[{pid:'main',name:a.fio||'',phone:a.phone||client.phone||'',docs:files.passport.map(({from,...f})=>f),agree:false},
-    ...co.map(c=>({pid:c.id,name:c.name||'',phone:'',docs:[],agree:false}))].map(p=>({...p,...(prev.find(x=>x.pid===p.pid)||{})}));
+  /* первая проверка — по данным заёмщика, если паспорт уже распознан в анкете; «Проверить нового клиента» — пустая форма */
+  const fromDeal=()=>a.recognized?{...PS_EMPTY,...psFromPassport()}:{...PS_EMPTY};
   const [phase,setPhase]=useState(prescore?'result':'form');
-  const [ppl,setPpl]=useState(init);
+  const [v,setV]=useState(fromDeal);
   const [errs,setErrs]=useState({});
-  const upd=i=>(patch,k)=>{setPpl(o=>o.map((p,j)=>j===i?{...p,...patch}:p));if(k)setErrs(o=>({...o,[k+i]:''}))};
-  const blank=()=>({pid:'c'+Date.now(),name:'',phone:'',docs:[],agree:false,isNew:true});
-  const done=p=>p.score!=null;
-  const addCo=()=>{if(ppl.length>=4){say('В заявке может быть до 4 участников');return}setPpl(o=>[...o,blank()])};
-  /* из результата: проверенные остаются как есть, добавляется пустая карточка нового участника */
-  const addMore=()=>{if(r.people.length>=4){say('В заявке может быть до 4 участников');return}setPpl([...r.people,blank()]);setErrs({});setPhase('form')};
-  /* «Пересчитать» — заново запрашиваем всех */
-  const recheck=()=>{setPpl(o=>o.map(({score,report,checks,...p})=>p));setErrs({});setPhase('form')};
-  const fresh=ppl.filter(p=>!done(p)).length;
-  const run=()=>{const e={};ppl.forEach((p,i)=>{if(done(p))return;
-      if(p.phone.replace(/\D/g,'').length<11)e['phone'+i]='Введите номер полностью';
-      if(!p.docs.length)e['docs'+i]='Загрузите разворот паспорта с фото';
-      if(!p.agree)e['agree'+i]='Нужно согласие на запрос в БКИ'});
-    setErrs(e);if(Object.values(e).some(Boolean)){setTimeout(()=>{const el=document.querySelector('.modal .err,.modal .err-text');el&&el.scrollIntoView({block:'center',behavior:'smooth'})},30);return}
+  const [isNew,setIsNew]=useState(false);
+  const newClient=()=>{setPrescore(null);setV({...PS_EMPTY});setErrs({});setIsNew(true);setPhase('form')};
+  const run=()=>{const e=psCheck(v);setErrs(e);
+    if(Object.values(e).some(Boolean)){setTimeout(()=>{const el=document.querySelector('.modal .err,.modal .err-text');el&&el.scrollIntoView({block:'center',behavior:'smooth'})},30);return}
     setPhase('loading');
-    setTimeout(()=>{const total=calc.offers.length;let ci=ppl.slice(1).filter(done).length;
-      const people=ppl.map((p,i)=>{if(done(p))return p;if(i===0){const rep=psReport('ok');return {...p,name:p.name||PASSPORT_DATA.fio,score:902,report:rep,checks:psFlags(rep)}}
-        const d=CO_DEMO[ci++%CO_DEMO.length];const rep=psReport(d[2]);return {...p,name:p.name||d[0],score:d[1],report:rep,checks:psFlags(rep)}});
-      const minS=Math.min(...people.map(p=>p.score));
-      setPrescore({people,score:people[0].score,banks:Math.round(total*(minS>=861?0.8:minS>=633?0.6:0.25)),total,date:new Date().toLocaleDateString('ru-RU')});
-      /* новые созаёмщики попадают в «Участники заявки», паспорт заёмщика — в «Персональные данные» */
-      setCo(o=>{const known=new Set(o.map(c=>c.id));const upd2=o.map(c=>{const p=people.find(x=>x.pid===c.id);return p?{...c,name:c.name||p.name}:c});
-        return [...upd2,...people.slice(1).filter(p=>!known.has(p.pid)).map(p=>({id:p.pid,name:p.name}))]});
-      const m=people[0];
-      setFiles(o=>({...o,passport:[...o.passport.filter(f=>!f.from),...m.docs.filter(d=>!o.passport.some(x=>!x.from&&x.name===d.name)).map(f=>({...f,from:'prescore'}))]}));
-      setA(o=>({...o,...(o.recognized?{}:PASSPORT_DATA),recognized:true,fromPrescore:true,phone:o.phone||m.phone}));
+    setTimeout(()=>{const total=calc.offers.length;const name=[v.last,v.first,v.middle].map(x=>x.trim()).join(' ');
+      const borrower=!isNew&&(!a.fio||a.fio===name);
+      const d=borrower?['',902,'ok']:CO_DEMO[(Date.now()/1000|0)%CO_DEMO.length];const rep=psReport(d[2]);
+      const p={pid:borrower?'main':'client-'+Date.now(),name,role:borrower?'Заёмщик':'Клиент',passport:digits(v.series)+' '+digits(v.number),score:d[1],report:rep,checks:psFlags(rep)};
+      setPrescore({people:[p],score:p.score,banks:Math.round(total*(p.score>=861?0.8:p.score>=633?0.6:0.25)),total,date:new Date().toLocaleDateString('ru-RU')});
       setPhase('result')},1600)};
   const r=prescore;
-  return html`<${ModalShell} wide=${phase==='result'} title="Прескоринг участников" sub=${phase==='result'?'Предварительная оценка по данным БКИ от '+r.date:'Предварительная оценка по данным бюро кредитных историй. На заявку в банк не влияет'} onClose=${onClose}>
-    ${phase==='form'&&html`<div class="stack">
-      ${ppl.some(done)&&html`<p class="hint" style=${{margin:0}}>Проверенных участников заново не запрашиваем — бюро проверит только новых</p>`}
-      ${ppl.map((p,i)=>done(p)?html`<div class="ps-done" key=${p.pid}><span class="avatar">${initials(p.name)}</span>
-          <div class="ps-done-t"><b>${p.name}</b><span>${i===0?'Заёмщик':'Созаёмщик'} · проверен ${r?r.date:''}</span></div>
-          <span class=${'badge '+(p.score>=861?'success':p.score>=633?'':'warning')}>${p.score}</span></div>`
-        :html`<${PsPerson} key=${p.pid} p=${p} i=${i} errs=${errs} upd=${upd(i)} del=${()=>{setPpl(o=>o.filter((_,j)=>j!==i));setErrs({})}}/>`)}
-      ${ppl.length<4&&html`<div class="ps-add"><button class="btn outline s" onClick=${addCo}>${ic.plus(16)} Добавить созаёмщика</button><span class="hint">можно ещё ${4-ppl.length}, всего до 4 участников</span></div>`}
-    </div>
-    <div class="modal-act"><button class="btn outline" onClick=${()=>r&&ppl.some(done)?setPhase('result'):onClose()}>${r&&ppl.some(done)?'Назад к результату':'Отмена'}</button><button class="btn primary" disabled=${!fresh} onClick=${run}>${ppl.some(done)?(fresh>1?'Проверить '+fresh+' новых участников':'Проверить нового участника'):ppl.length>1?'Рассчитать для '+ppl.length+' участников':'Рассчитать рейтинг'}</button></div>`}
+  return html`<${ModalShell} wide=${phase==='result'} title="Прескоринг" sub=${phase==='result'?'Предварительная оценка по данным БКИ от '+r.date:'Предварительная оценка по данным бюро кредитных историй. На заявку в банк не влияет'} onClose=${onClose}>
+    ${phase==='form'&&html`<${PsForm} v=${v} setV=${setV} errs=${errs} setErrs=${setErrs}/>
+    <div class="modal-act"><button class="btn outline" onClick=${onClose}>Отмена</button><button class="btn primary" disabled=${v.recog==='busy'} onClick=${run}>Запустить прескоринг</button></div>`}
     ${phase==='loading'&&html`<div class="ps-load"><span class="spinner"></span><b>Запрашиваем кредитную историю</b><span class="desc">Обычно это занимает несколько секунд</span></div>`}
     ${phase==='result'&&html`<div class="stack">
       ${r.people.map((p,i)=>html`<${PsResult} key=${p.pid} p=${p} i=${i}/>`)}
-      ${r.people.length<4&&html`<div class="ps-add"><button class="btn outline s" onClick=${addMore}>${ic.plus(16)} Добавить созаёмщика</button><span class="hint">Можно ещё ${4-r.people.length} — проверим только нового, остальные результаты сохранятся</span></div>`}
-      <div class="ps-reco">${r.people.length>1?'С учётом всех участников — ':''}${(m=>m>=861?'высокая':m>=633?'хорошая':'низкая')(Math.min(...r.people.map(p=>p.score)))} вероятность одобрения в ${r.banks} из ${r.total} банков подборки</div>
+      <div class="ps-reco">${(m=>m>=861?'Высокая':m>=633?'Хорошая':'Низкая')(r.score)} вероятность одобрения в ${r.banks} из ${r.total} банков подборки</div>
     </div>
-    <div class="modal-act"><button class="btn outline" style=${{marginRight:'auto'}} disabled=${pdfBusy} onClick=${downloadPdf}>${pdfBusy?html`<span class="spinner sm"></span>Готовим PDF`:html`${ic.download(16)}PDF для клиента`}</button><button class="btn outline" onClick=${recheck}>Пересчитать всех</button><button class="btn primary" onClick=${()=>{onClose();say(r.people.length>1?'Рейтинг участников сохранён в заявке':'Рейтинг сохранён в заявке')}}>Готово</button></div>`}
+    <div class="modal-act"><button class="btn outline" style=${{marginRight:'auto'}} disabled=${pdfBusy} onClick=${downloadPdf}>${pdfBusy?html`<span class="spinner sm"></span>Готовим PDF`:html`${ic.download(16)}PDF для клиента`}</button><button class="btn outline" onClick=${newClient}>${ic.plus(16)}Проверить нового клиента</button><button class="btn primary" onClick=${()=>{onClose();say('Рейтинг сохранён в заявке')}}>Готово</button></div>`}
   <//>`;
 }
 /* Карточка банка из списка предложений. Значения — демо, детерминированы от позиции банка */
