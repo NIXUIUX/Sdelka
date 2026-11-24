@@ -677,3 +677,5 @@ body{margin:0}
 .step.skip{color:var(--color-text-disabled);cursor:default}
 .step.skip .n{background:var(--color-surface-page);color:var(--color-text-muted)}
 .step.skip .t{display:flex;flex-direction:column}.step.skip small{font-size:12px;line-height:16px;color:var(--color-text-muted)}
+.ps-person-h{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.modal .ps-add{justify-content:center;padding:4px 0}

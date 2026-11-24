@@ -605,13 +605,13 @@ const pplOf=ps=>ps?ps.people:[];
 /* Форма прескоринга по API подрядчика: скан паспорта (PDF/JPG до 10 МБ) распознаётся в те же пять полей, их можно ввести и вручную */
 const PS_EMPTY={last:'',first:'',middle:'',series:'',number:'',docs:[],recog:'idle',auto:{}};
 const PS_FIELDS=[['last','Фамилия','фамилию'],['first','Имя','имя'],['middle','Отчество','отчество']];
-const psFromPassport=()=>{const [last,first,middle]=PASSPORT_DATA.fio.split(' ');const [ser,num]=PASSPORT_DATA.passNum.split(' ');return {last,first,middle,series:MASKS.passSer(ser),number:num}};
+const psFromPassport=(src=PASSPORT_DATA)=>{const [last,first,middle]=src.fio.split(' ');const [ser,num]=src.passNum.split(' ');return {last,first,middle,series:MASKS.passSer(ser),number:num}};
 function psCheck(v){const e={};
   for(const [k,,acc] of PS_FIELDS){const t=v[k].trim();if(!t)e[k]='Укажите '+acc;else if(!/^[А-Яа-яЁё]+(-[А-Яа-яЁё]+)?$/.test(t))e[k]='Только русские буквы, как в паспорте'}
   if(digits(v.series).length!==4)e.series='Серия — 4 цифры';
   if(digits(v.number).length!==6)e.number='Номер — 6 цифр';
   return e}
-function PsForm({v,setV,errs,setErrs}){
+function PsForm({v,setV,errs,setErrs,idp='',title,onRemove,src}){
   const set=(k,val)=>{setV(o=>({...o,[k]:val,auto:{...o.auto,[k]:false}}));setErrs(o=>({...o,[k]:''}))};
   const onFiles=fs=>{const f=fs[0];if(!f)return;
     if(!/\.(pdf|jpe?g)$/i.test(f.name)){setErrs(o=>({...o,docs:'Нужен файл PDF или JPG'}));return}
@@ -619,20 +619,21 @@ function PsForm({v,setV,errs,setErrs}){
     setErrs(o=>({...o,docs:''}));setV(o=>({...o,docs:[fileObj(f)],recog:'busy'}));
     /* демо: очень маленький файл считаем нечитаемым сканом */
     setTimeout(()=>{if(f.size<20*1024){setV(o=>({...o,recog:'fail'}));return}
-      const d=psFromPassport();setV(o=>({...o,...d,recog:'done',auto:{last:true,first:true,middle:true,series:true,number:true}}));
+      const d=psFromPassport(src);setV(o=>({...o,...d,recog:'done',auto:{last:true,first:true,middle:true,series:true,number:true}}));
       setErrs({})},1200)};
-  return html`<div class="stack">
+  return html`<div class=${'stack'+(title?' ps-person':'')}>
+    ${title&&html`<div class="ps-person-h"><h3>${title}</h3>${onRemove&&html`<button class="part-x" aria-label="Убрать участника" onClick=${onRemove}>${ic.x(16)}</button>`}</div>`}
     <div class="stack" style=${{gap:'12px'}}>
-      <${UploadZone} id="ps-pass" title="Скан паспорта РФ · разворот с фото" limits="PDF или JPG до 10 МБ" error=${errs.docs} onFiles=${onFiles}/>
+      <${UploadZone} id=${'ps-pass'+idp} title="Скан паспорта РФ · разворот с фото" limits="PDF или JPG до 10 МБ" error=${errs.docs} onFiles=${onFiles}/>
       ${v.docs.map(f=>html`<${FileItem} f=${f} onRemove=${()=>setV(o=>({...o,docs:[],recog:'idle',auto:{}}))}/>`)}
       ${v.recog==='busy'&&html`<div class="ps-recog"><span class="spinner sm"></span>Распознаём паспорт — подставим данные в поля ниже</div>`}
       ${v.recog==='fail'&&html`<${Alert} type="warning" title="Не удалось распознать паспорт">Заполните поля вручную или загрузите более чёткий скан<//>`}
     </div>
     <p class="hint" style=${{margin:0}}>${v.recog==='done'?'Данные подставлены из скана — сверьте их с паспортом':'Загрузите скан или заполните поля вручную — все поля обязательны'}</p>
     <div class="ps-grid">
-      ${PS_FIELDS.map(([k,l])=>html`<${Field} id=${'ps-'+k} label=${l} mask="name" value=${v[k]} onChange=${x=>set(k,x)} error=${errs[k]}/>`)}
-      <${Field} id="ps-series" label="Серия" mask="passSer" inputMode="numeric" value=${v.series} onChange=${x=>set('series',x)} error=${errs.series} helper="4 цифры"/>
-      <${Field} id="ps-number" label="Номер" mask="passNo" inputMode="numeric" value=${v.number} onChange=${x=>set('number',x)} error=${errs.number} helper="6 цифр"/>
+      ${PS_FIELDS.map(([k,l])=>html`<${Field} id=${'ps-'+k+idp} label=${l} mask="name" value=${v[k]} onChange=${x=>set(k,x)} error=${errs[k]}/>`)}
+      <${Field} id=${'ps-series'+idp} label="Серия" mask="passSer" inputMode="numeric" value=${v.series} onChange=${x=>set('series',x)} error=${errs.series} helper="4 цифры"/>
+      <${Field} id=${'ps-number'+idp} label="Номер" mask="passNo" inputMode="numeric" value=${v.number} onChange=${x=>set('number',x)} error=${errs.number} helper="6 цифр"/>
     </div>
   </div>`;
 }
@@ -694,32 +695,65 @@ function PrescoreModal({onClose}){
   const {prescore,setPrescore,a,setA,files,setFiles,co,setCo,client,say,calc,dealId}=useApp();
   const [pdfBusy,setPdfBusy]=useState(false);
   const downloadPdf=async()=>{setPdfBusy(true);try{const blob=await makePrescorePdf(prescore,dealId);await savePdf(blob,`Прескоринг · заявка ${dealId}.pdf`);say('PDF-отчёт готов — его можно распечатать или отправить клиенту')}catch(e){const c=e&&e.code;say(c==='declined'?'Сохранение отменено':c==='rate_limited'?'Подождите — окно сохранения уже открыто':e&&e.message==='load'?'Не удалось загрузить модуль PDF — проверьте интернет':'Не получилось сформировать PDF')}finally{setPdfBusy(false)}};
-  /* первая проверка — по данным заёмщика, если паспорт уже распознан в анкете; «Проверить нового клиента» — пустая форма */
-  const fromDeal=()=>a.recognized?{...PS_EMPTY,...psFromPassport()}:{...PS_EMPTY};
+  const app=useApp();
+  /* участники прескоринга: заёмщик и до 3 созаёмщиков. Заёмщик — из анкеты, если паспорт уже распознан; созаёмщики заявки — по именам */
+  const split=n=>{const [last='',first='',middle='']=(n||'').split(' ');return {last,first,middle}};
+  const initPpl=()=>{const prev=prescore?prescore.people:[];
+    const main={...PS_EMPTY,pid:'main',...(a.recognized?psFromPassport({fio:a.fio,passNum:a.passNum}):{})};
+    const cos=app.parts.filter(p=>p.id!=='main').map(p=>{const x=app.partOf(p.id);return {...PS_EMPTY,pid:p.id,...split(x.name),...(x.a.passNum?(([s1,n1])=>({series:MASKS.passSer(s1||''),number:n1||''}))(x.a.passNum.split(' ')):{})}});
+    return [main,...cos].map(p=>{const d=prev.find(x=>x.pid===p.pid);return d?{...p,...d.form,score:d.score,report:d.report,checks:d.checks,name:d.name}:p})};
   const [phase,setPhase]=useState(prescore?'result':'form');
-  const [v,setV]=useState(fromDeal);
+  const [ppl,setPpl]=useState(initPpl);
   const [errs,setErrs]=useState({});
-  const [isNew,setIsNew]=useState(false);
-  const newClient=()=>{setPrescore(null);setV({...PS_EMPTY});setErrs({});setIsNew(true);setPhase('form')};
-  const run=()=>{const e=psCheck(v);setErrs(e);
-    if(Object.values(e).some(Boolean)){setTimeout(()=>{const el=document.querySelector('.modal .err,.modal .err-text');el&&el.scrollIntoView({block:'center',behavior:'smooth'})},30);return}
+  const done=p=>p.score!=null;
+  const setV=pid=>fn=>setPpl(o=>o.map(p=>p.pid===pid?(typeof fn==='function'?fn(p):fn):p));
+  const setE=pid=>fn=>setErrs(o=>({...o,[pid]:typeof fn==='function'?fn(o[pid]||{}):fn}));
+  const roleOf=i=>i===0?'Заёмщик':'Созаёмщик'+(ppl.length>2?' '+i:'');
+  const add=()=>{if(ppl.length>=4){say('В прескоринге — до 4 участников');return}setPpl(o=>[...o,{...PS_EMPTY,pid:'c'+Date.now()}]);setPhase('form')};
+  const fresh=ppl.filter(p=>!done(p));
+  const newClient=()=>{setPrescore(null);setPpl([{...PS_EMPTY,pid:'new-'+Date.now()}]);setErrs({});setPhase('form')};
+  const run=()=>{const e={};fresh.forEach(p=>{const x=psCheck(p);if(Object.values(x).some(Boolean))e[p.pid]=x});setErrs(e);
+    if(Object.keys(e).length){setTimeout(()=>{const el=document.querySelector('.modal .err,.modal .err-text');el&&el.scrollIntoView({block:'center',behavior:'smooth'})},30);return}
     setPhase('loading');
-    setTimeout(()=>{const total=calc.offers.length;const name=[v.last,v.first,v.middle].map(x=>x.trim()).join(' ');
-      const borrower=!isNew&&(!a.fio||a.fio===name);
-      const d=borrower?['',902,'ok']:CO_DEMO[(Date.now()/1000|0)%CO_DEMO.length];const rep=psReport(d[2]);
-      const p={pid:borrower?'main':'client-'+Date.now(),name,role:borrower?'Заёмщик':'Клиент',passport:digits(v.series)+' '+digits(v.number),score:d[1],report:rep,checks:psFlags(rep)};
-      setPrescore({people:[p],score:p.score,banks:Math.round(total*(p.score>=861?0.8:p.score>=633?0.6:0.25)),total,date:new Date().toLocaleDateString('ru-RU')});
+    setTimeout(()=>{const total=calc.offers.length;let ci=0;
+      const people=ppl.map((p,i)=>{const name=[p.last,p.first,p.middle].map(x=>x.trim()).join(' ');
+        const form={last:p.last,first:p.first,middle:p.middle,series:p.series,number:p.number,docs:p.docs};
+        if(done(p))return {pid:p.pid,name,role:roleOf(i),score:p.score,report:p.report,checks:p.checks,form};
+        const d=i===0?['',902,'ok']:CO_DEMO[ci++%CO_DEMO.length];const rep=psReport(d[2]);
+        return {pid:p.pid,name,role:roleOf(i),passport:digits(p.series)+' '+digits(p.number),score:d[1],report:rep,checks:psFlags(rep),form}});
+      const minS=Math.min(...people.map(p=>p.score));
+      setPrescore({people,score:people[0].score,banks:Math.round(total*(minS>=861?0.8:minS>=633?0.6:0.25)),total,date:new Date().toLocaleDateString('ru-RU')});
+      setPpl(o=>o.map(p=>{const d=people.find(x=>x.pid===p.pid);return {...p,score:d.score,report:d.report,checks:d.checks}}));
       setPhase('result')},1600)};
+  /* «Продолжить»: переносим ФИО, паспорт и скан в анкеты — заёмщику и созаёмщикам (новых добавляем в «Участники заявки») */
+  const toAnketa=()=>{const r=prescore;if(!r){onClose();return}
+    r.people.forEach((p,i)=>{const f=p.form, fio=p.name, passNum=digits(f.series)+' '+digits(f.number), docs=(f.docs||[]).map(d=>({...d,from:'prescore'}));
+      if(i===0){app.setMainA(o=>({...o,fio:o.fio||fio,passNum:o.passNum||passNum}));if(docs.length)setFiles(o=>o.passport.length?o:{...o,passport:docs});return}
+      if(p.pid!=='spouse'&&!app.co.some(c=>c.id===p.pid))setCo(o=>[...o,{id:p.pid,name:fio}]);
+      app.setCoA(m=>{const e=m[p.pid]||{a:{...DEFAULT_ANKETA},files:{passport:[],snils:[]},done:{}};
+        return {...m,[p.pid]:{...e,a:{...e.a,fio:e.a.fio||fio,passNum:e.a.passNum||passNum},files:e.files.passport.length||!docs.length?e.files:{...e.files,passport:docs}}}})});
+    onClose();say(r.people.length>1?'Данные участников перенесены в анкету — проверьте их на шаге «Персональные данные»':'Данные заёмщика перенесены в анкету')};
   const r=prescore;
   return html`<${ModalShell} wide=${phase==='result'} title="Прескоринг" sub=${phase==='result'?'Предварительная оценка по данным БКИ от '+r.date:'Предварительная оценка по данным бюро кредитных историй. На заявку в банк не влияет'} onClose=${onClose}>
-    ${phase==='form'&&html`<${PsForm} v=${v} setV=${setV} errs=${errs} setErrs=${setErrs}/>
-    <div class="modal-act"><button class="btn outline" onClick=${onClose}>Отмена</button><button class="btn primary" disabled=${v.recog==='busy'} onClick=${run}>Запустить прескоринг</button></div>`}
+    ${phase==='form'&&html`<div class="stack">
+      ${ppl.some(done)&&html`<p class="hint" style=${{margin:0}}>Проверенных участников заново не запрашиваем — бюро проверит только новых</p>`}
+      ${ppl.map((p,i)=>done(p)?html`<div class="ps-done" key=${p.pid}><span class="avatar">${initials([p.last,p.first].join(' '))}</span>
+          <div class="ps-done-t"><b>${[p.last,p.first,p.middle].join(' ')}</b><span>${roleOf(i)} · проверен</span></div>
+          <span class=${'badge '+(p.score>=861?'success':p.score>=633?'':'warning')}>${p.score}</span></div>`
+        :html`<${PsForm} key=${p.pid} idp=${'-'+i} title=${ppl.length>1?roleOf(i):null} v=${p} setV=${setV(p.pid)} errs=${errs[p.pid]||{}} setErrs=${setE(p.pid)}
+            src=${i===0?PASSPORT_DATA:CO_PASSPORT} onRemove=${i>0?()=>{setPpl(o=>o.filter(x=>x.pid!==p.pid));setErrs(o=>{const n={...o};delete n[p.pid];return n})}:null}/>`)}
+      ${ppl.length<4&&html`<div class="ps-add"><button class="btn outline s" onClick=${add}>${ic.plus(16)} Добавить созаёмщика</button><span class="hint">можно ещё ${4-ppl.length}, всего до 4 участников</span></div>`}
+    </div>
+    <div class="modal-act"><button class="btn outline" onClick=${()=>r&&ppl.some(done)?setPhase('result'):onClose()}>${r&&ppl.some(done)?'Назад к результату':'Отмена'}</button>
+      <button class="btn primary" disabled=${!fresh.length||fresh.some(p=>p.recog==='busy')} onClick=${run}>${ppl.some(done)?(fresh.length>1?'Проверить '+fresh.length+' новых участников':'Проверить нового участника'):ppl.length>1?'Запустить прескоринг · '+ppl.length+' участника':'Запустить прескоринг'}</button></div>`}
     ${phase==='loading'&&html`<div class="ps-load"><span class="spinner"></span><b>Запрашиваем кредитную историю</b><span class="desc">Обычно это занимает несколько секунд</span></div>`}
     ${phase==='result'&&html`<div class="stack">
       ${r.people.map((p,i)=>html`<${PsResult} key=${p.pid} p=${p} i=${i}/>`)}
-      <div class="ps-reco">${(m=>m>=861?'Высокая':m>=633?'Хорошая':'Низкая')(r.score)} вероятность одобрения в ${r.banks} из ${r.total} банков подборки</div>
+      ${r.people.length<4&&html`<div class="ps-add"><button class="btn outline s" onClick=${add}>${ic.plus(16)} Добавить созаёмщика</button><span class="hint">Можно ещё ${4-r.people.length} — проверим только нового</span></div>`}
+      <div class="ps-reco">${r.people.length>1?'С учётом всех участников — ':''}${(m=>m>=861?'высокая':m>=633?'хорошая':'низкая')(Math.min(...r.people.map(p=>p.score)))} вероятность одобрения в ${r.banks} из ${r.total} банков подборки</div>
     </div>
-    <div class="modal-act"><button class="btn outline" style=${{marginRight:'auto'}} disabled=${pdfBusy} onClick=${downloadPdf}>${pdfBusy?html`<span class="spinner sm"></span>Готовим PDF`:html`${ic.download(16)}PDF для клиента`}</button><button class="btn outline" onClick=${newClient}>${ic.plus(16)}Проверить нового клиента</button><button class="btn primary" onClick=${()=>{onClose();say('Рейтинг сохранён в заявке')}}>Готово</button></div>`}
+    <div class="modal-act"><button class="btn outline" style=${{marginRight:'auto'}} disabled=${pdfBusy} onClick=${downloadPdf}>${pdfBusy?html`<span class="spinner sm"></span>Готовим PDF`:html`${ic.download(16)}PDF для клиента`}</button>
+      <button class="btn outline" onClick=${newClient}>Проверить нового клиента</button><button class="btn primary" onClick=${toAnketa}>Продолжить · в анкету</button></div>`}
   <//>`;
 }
 /* Карточка банка из списка предложений. Значения — демо, детерминированы от позиции банка */
