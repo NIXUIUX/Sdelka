@@ -1878,7 +1878,6 @@ function Deals(){
   const newDeal=()=>go('podbor');
   return html`<${AppHeader}/>
   <main class="wrap">
-    <${LineTabs} active=${0}/>
     <section class="card deals">
       <div class="row" style=${{justifyContent:'space-between'}}><div><h2>Ипотечные заявки</h2><p class="desc">Клиенты, заявки и ответы банков</p></div>
         <${Badge} tone="accent">${total} ${plural(total,'заявка','заявки','заявок')}<//></div>
