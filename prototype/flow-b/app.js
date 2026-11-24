@@ -277,6 +277,7 @@ function CreditParams({banks,backLabel='Изменить параметры по
   return html`<section class="side-card cp">
     <button class="cp-h" onClick=${()=>setOpen(!open)} aria-expanded=${open}><h4>Параметры кредита</h4><span class=${'cp-chev'+(open?' up':'')}>${ic.chev(20)}</span></button>
     <${CreditSummary} list=${list}/>
+    <div class="picked">${list.map(o=>html`<${PkRow} key=${o.name} o=${o}/>`)}</div>
     ${open&&html`<dl class="cp-rows cp-params num">
         <dt>Цель</dt><dd>${f.goal}</dd>
         <dt>Программа</dt><dd>${f.program}</dd>
@@ -311,7 +312,7 @@ function PkRow({o,onRemove}){
         <span class="avatar">${o.ini}</span><span class="tx"><b>${o.name}</b><small class="num">${line}</small>
         ${custom&&!open&&html`<small class="pk-custom">Свои условия: ${years(t)} · взнос ${pctStr(dp)}</small>`}</span>
         ${!sx&&html`<span class=${'cp-chev'+(open?' up':'')}>${ic.chev(16)}</span>`}</button>
-      ${sx?html`<span class="pk-lock" title="Анкета уже отправлена в банк — убрать нельзя" aria-label="Анкета отправлена, убрать нельзя">${ic.lock(16)}</span>`:html`<button class="part-x" aria-label=${'Убрать '+o.name} onClick=${()=>onRemove(o.name)}>${ic.x(16)}</button>`}</div>
+      ${sx?html`<span class="pk-lock" title="Анкета уже отправлена в банк — убрать нельзя" aria-label="Анкета отправлена, убрать нельзя">${ic.lock(16)}</span>`:onRemove&&html`<button class="part-x" aria-label=${'Убрать '+o.name} onClick=${()=>onRemove(o.name)}>${ic.x(16)}</button>`}</div>
     ${open&&html`<div class="pk-edit">
       <div class="pk-f"><span class="pk-l">Срок кредита<small>в банке до ${years(lim.term)}</small></span>
         <div class="mini-stp"><button aria-label="Уменьшить срок" disabled=${t<=1} onClick=${()=>setT(t-1)}>${ic.minus(16)}</button><b class="num">${t}</b>

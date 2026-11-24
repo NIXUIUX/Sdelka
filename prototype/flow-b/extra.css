@@ -667,3 +667,6 @@ body{margin:0}
 .ms-i.sel{background:var(--color-surface-card)}
 .ms-note{display:flex;gap:6px;margin:6px 4px 2px;padding:8px 10px;border-radius:10px;background:var(--color-surface-page);font-size:12px;line-height:16px;color:var(--color-text-secondary)}
 .ms-note svg{flex:none;margin-top:1px}
+/* Заголовок-переключатель карточки: рамка фокуса только с клавиатуры */
+.cp-h:focus:not(:focus-visible){outline:none;box-shadow:none}
+.cp .picked + .cp-params{margin-top:0}
