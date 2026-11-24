@@ -1285,11 +1285,10 @@ function PrescoreCard(){
 }
 function StepsNav({current}){
   /* в анкете созаёмщика — его прогресс по персональным данным и доходу; семейное положение берётся у заёмщика */
-  const {done:md,who,partOf,a}=useApp(); const pd=who==='main'?null:partOf(who).done;
+  const {done:md,who,partOf}=useApp(); const pd=who==='main'?null:partOf(who).done;
   const done=pd?{...md,personal:!!pd.personal,income:!!pd.income}:md;
   return html`<section class="side-card"><h4>Шаги анкеты</h4><div class="steps">${STEPS.map(([k,n],i)=>{const cur=k===current, d=done[k]&&!cur;
     /* у созаёмщика этого шага нет — данные о семье берём у заёмщика */
-    if(pd&&k==='income'&&!a.useIncome)return html`<div class="step skip" aria-disabled="true"><span class="n">${ic.minus(14)}</span><span class="t">${n}<small>Доход созаёмщика не учитываем</small></span></div>`;
     if(pd&&k==='family')return html`<div class="step skip" aria-disabled="true"><span class="n">${ic.minus(14)}</span><span class="t">${n}<small>Берём из анкеты заёмщика</small></span></div>`;
     return d?html`<button class="step done" onClick=${()=>go(k)}><span class="n">${ic.check(14)}</span><span class="t">${n}</span>${ic.chevR(18)}</button>`
       :html`<div class=${'step'+(cur?' cur':' locked')} aria-current=${cur?'step':null} aria-disabled=${!cur}><span class="n">${i+1}</span><span class="t">${n}</span></div>`})}</div></section>`;
@@ -1392,7 +1391,7 @@ function WhoBar({step}){
   return html`<div class="who-wrap"><div class="who-head"><div class="who-t"><small>${p.role}</small><h2>${p.name||(p.id==='spouse'?'Супруг(а)':'Новый участник')}</h2></div>
     ${r&&html`<div class="who-score"><span class=${'lvl xs '+lv[1]}>Кредитный рейтинг</span><div><b class=${'num sc-'+lv[1]}>${r.score}</b><span>из 999</span></div></div>`}</div>
     ${who!=='main'&&html`<div class="inc-sw"><${Switch} checked=${!!p.a.useIncome} onChange=${x=>setA(o=>({...o,useIncome:x}))} label="Учитывать доход созаёмщика"/>
-      <small>${p.a.useIncome?'Шаг «Доход и работа» заполним и для созаёмщика':'Банк оценит платёжеспособность только по доходу заёмщика — шаг «Доход и работа» пропустим'}</small></div>`}</div>`;
+      <small>${p.a.useIncome?'Доход созаёмщика добавим к доходу заёмщика — заполните его на шаге «Доход и работа»':'Банк оценит платёжеспособность по доходу заёмщика. У созаёмщика заполним только занятость, место работы и стаж'}</small></div>`}</div>`;
 }
 function AnketaPage({step,children,onNext,extraSide,alert,primary='Продолжить'}){
   const {flowBack,who}=useApp(); const idx=STEPS.findIndex(s=>s[0]===step);
@@ -2045,9 +2044,11 @@ function StepperField({id,label,value,onChange,min=0,max=60,error,helper}){
     ${error&&typeof error==='string'?html`<${FieldError} text=${error}/>`:helper&&html`<p class="helper">${helper}</p>`}</div>`;
 }
 function Income(){
-  const app=useApp(); const {a,setA,markDone,say}=app; const v=useValidation();
+  const app=useApp(); const {a,setA,markDone,say,who}=app; const v=useValidation();
   const set=(k,val)=>{setA(o=>({...o,[k]:val}));v.clear(k)};
-  const jobs=a.jobs||[];
+  /* созаёмщик без учёта дохода: только занятость, место работы, образование и стаж */
+  const noInc=who!=='main'&&!a.useIncome;
+  const jobs=noInc?[]:(a.jobs||[]);
   const updJ=(i,k,val)=>{setA(o=>({...o,jobs:o.jobs.map((x,j)=>j===i?{...x,[k]:val}:x)}));v.clear('j'+k+i)};
   const addJ=()=>setA(o=>({...o,jobs:[...(o.jobs||[]),{kind:'Совместительство',org:'',inn:'',pos:'',start:'',income:''}]}));
   const delJ=i=>{setA(o=>({...o,jobs:o.jobs.filter((_,j)=>j!==i)}));v.setErrs({})};
@@ -2058,7 +2059,7 @@ function Income(){
     jobRules['jstart'+i]=!/^\d{2}\.\d{2}\.\d{4}$/.test(x.start)?'Введите дату начала в формате дд.мм.гггг':'';
     jobRules['jincome'+i]=!(+digits(x.income)>0)?'Укажите доход на этом месте после вычета налогов':''});
   const next=()=>{ if(v.run({
-      income:!(+digits(a.income)>0)?'Укажите доход после вычета налогов — от него зависит, какую сумму одобрит банк':'',
+      income:!noInc&&!(+digits(a.income)>0)?'Укажите доход после вычета налогов — от него зависит, какую сумму одобрит банк':'',
       org:!a.org.trim()?'Укажите работодателя так, как в трудовом договоре — банк проверит его по ИНН':'',
       orgInn:digits(a.orgInn).length!==10?'У организации ИНН из 10 цифр. Его можно взять из справки или трудового договора':'',
       position:!a.position.trim()?'Укажите должность — банк учитывает её при оценке стабильности дохода':'',
@@ -2066,16 +2067,16 @@ function Income(){
       startDate:!/^\d{2}\.\d{2}\.\d{4}$/.test(a.startDate)?'Введите дату в формате дд.мм.гггг — по ней считается стаж на текущем месте':'',...jobRules,eduLevel:a.eduLevel===PICK?'Выберите уровень образования':'',expYears:a.expYears===''?'Укажите общий стаж — можно 0, если клиент только начал работать':'',
       jobs3:a.jobs3===''||+a.jobs3<1?'Укажите хотя бы одно место работы за последние 3 года':'',exp5:a.exp5===PICK?'Выберите стаж за последние 5 лет':''})){markDone('income');app.flowNext('income')} };
   return html`<${AnketaPage} step="income" onNext=${next} alert=${firstErrAlert(v.errs,'Не хватает данных о доходе и работе')}>
-    <div class="stack"><h1 class="sec">Доход участника</h1><p class="desc">Изменения сразу влияют на расчёт платёжеспособности</p>
+    <div class="stack"><h1 class="sec">${noInc?'Занятость':'Доход участника'}</h1><p class="desc">${noInc?'Доход созаёмщика не учитываем — банку нужны только сведения о работе':'Изменения сразу влияют на расчёт платёжеспособности'}</p>
       <div class="grid g2">
         <${SelectField} label="Тип занятости" value=${a.empType} items=${['По найму','ИП','Самозанятый','Собственник бизнеса','Пенсионер']} onPick=${x=>set('empType',x)}/>
         <${SelectField} label="Вид трудового договора" value=${a.contract} items=${['Бессрочный трудовой договор','Срочный трудовой договор','ГПХ']} onPick=${x=>set('contract',x)}/>
-        <${SelectField} label="Тип подтверждения дохода" value=${a.proof} items=${['Госуслуги / СФР','2-НДФЛ','Справка по форме банка','Без подтверждения']} onPick=${x=>set('proof',x)}/>
+        ${!noInc&&html`<${SelectField} label="Тип подтверждения дохода" value=${a.proof} items=${['Госуслуги / СФР','2-НДФЛ','Справка по форме банка','Без подтверждения']} onPick=${x=>set('proof',x)}/>
         <${Field} id="i-inc" label="Основной доход, ₽ / мес" value=${a.income?(+digits(a.income)).toLocaleString('ru-RU'):''} placeholder="0" suffix="₽" inputMode="numeric" mask="money" helper="Сумма после вычета налогов" error=${v.errs.income} onChange=${x=>set('income',digits(x))}/>
         <${SelectField} label="Зарплатный банк" value=${a.salaryBank} items=${['Не выбран',...BANKS.slice(0,10).map(b=>b[0])]} onPick=${x=>set('salaryBank',x)}/>
-        <${SelectField} label="Дополнительный доход" value=${a.extraIncome} items=${['Нет','Аренда','Совместительство','Пенсия']} onPick=${x=>set('extraIncome',x)}/>
+        <${SelectField} label="Дополнительный доход" value=${a.extraIncome} items=${['Нет','Аренда','Совместительство','Пенсия']} onPick=${x=>set('extraIncome',x)}/>`}
       </div>
-      ${a.proof==='Госуслуги / СФР'?html`<${Alert} title="Справка о доходах не требуется">Для выбранного способа подтверждения достаточно выписки с Госуслуг<//>`
+      ${noInc?null:a.proof==='Госуслуги / СФР'?html`<${Alert} title="Справка о доходах не требуется">Для выбранного способа подтверждения достаточно выписки с Госуслуг<//>`
         :html`<${Alert} title="Понадобится справка о доходах">Загрузите её на шаге подписания вместе с остальными документами<//>`}</div>
     <div class="stack"><h1 class="sec">Место работы</h1>
       <div class="inset-white"><h3>Основное место работы</h3>
@@ -2097,7 +2098,7 @@ function Income(){
           <${Field} id=${'j-pos'+i} label="Должность или вид работ" value=${x.pos} placeholder="Например, консультант" mask="text" helper="Как в договоре" error=${v.errs['jpos'+i]} onChange=${val=>updJ(i,'pos',val)}/>
           <${Field} id=${'j-start'+i} label="Дата начала работы" value=${x.start} placeholder="дд.мм.гггг" inputMode="numeric" mask="date" helper="На этом месте" error=${v.errs['jstart'+i]} onChange=${val=>updJ(i,'start',val)}/>
         </div></div>`)}
-      ${jobs.length<3&&html`<div><button class="btn outline" onClick=${addJ}>${ic.plus(16)} Добавить дополнительное место работы</button></div>`}</div>
+      ${!noInc&&jobs.length<3&&html`<div><button class="btn outline" onClick=${addJ}>${ic.plus(16)} Добавить дополнительное место работы</button></div>`}</div>
     <div class="stack"><h1 class="sec">Образование и стаж</h1><p class="desc">Банки учитывают их при оценке стабильности дохода</p>
       <div class="grid g2">
         <${SelectField} label="Образование" value=${a.eduLevel} items=${EDU_LEVELS} error=${v.errs.eduLevel} onPick=${x=>set('eduLevel',x)}/>
@@ -2390,7 +2391,7 @@ function Root(){
   const parts=sber?[{id:'main'}]:[{id:'main'},...(a.spouseCo?[{id:'spouse',spouse:true}]:[]),...co];
   const isMain=who==='main'||!parts.some(p=>p.id===who);
   const partOf=id=>{const i=parts.findIndex(p=>p.id===id);const p=parts[i]||{id};const pa=id==='main'?a:ent(id).a;const pd=id==='main'?done:ent(id).done;
-    const filled=id==='main'?!!(done.personal&&done.income):!!(pd.personal&&(pd.income||!pa.useIncome));
+    const filled=id==='main'?!!(done.personal&&done.income):!!(pd.personal&&pd.income);
     return {id,i,a:pa,files:id==='main'?files:ent(id).files,done:pd,filled,name:pa.fio||p.name||'',role:id==='main'?'Заёмщик':p.spouse?'Созаёмщик · супруг(а)':'Созаёмщик'}};
   const toTop=()=>window.scrollTo({top:0,behavior:'smooth'});
   Object.assign(value,{
@@ -2402,8 +2403,8 @@ function Root(){
     switchTo:(id,step)=>{setWho(id);if(id!=='main'&&!['personal','income'].includes(step))go('personal');toTop()},
     removePart:id=>{if(id==='spouse')setA(o=>({...o,spouseCo:false}));setCo(o=>o.filter(c=>c.id!==id));setCoA(m=>{const n={...m};delete n[id];return n});if(who===id)setWho('main')},
     flowNext:step=>{const cur=isMain?'main':who, i=parts.findIndex(p=>p.id===cur);
-      if(step==='personal'){if(isMain)return go(nextOf('personal'));if(ent(cur).a.useIncome)return go("income")}
-      if(step==='income'||step==='personal'){const n=parts[i+1];
+      if(step==='personal'){if(isMain)return go(nextOf('personal'));return go('income')}
+      if(step==='income'){const n=parts[i+1];
         if(n){setWho(n.id);setToast(isMain?'Анкета заёмщика заполнена — теперь анкета созаёмщика':'Анкета созаёмщика заполнена — следующий участник');go('personal');return toTop()}
         if(!isMain){setWho('main');const k=STEPS.map(x=>x[0]).find(x=>['personal','family','income'].includes(x)&&!done[x]);
           if(k){setToast('Анкета созаёмщика заполнена — продолжим анкету заёмщика');go(k);return toTop()}}
@@ -2422,7 +2423,7 @@ function Root(){
     go(h)};
   /* guard: шаги идут строго по порядку */
   let target=route;
-  if(order.includes(route)){ if(!selected.size&&route!=='podbor') target='podbor'; else { const first=order.find(k=>!done[k]); const fi=first?order.indexOf(first):order.length; if(order.indexOf(route)>fi) target=first; } }
+  if(order.includes(route)){ if(!selected.size&&route!=='podbor') target='podbor'; else { const gd=isMain?done:{...done,personal:!!ent(who).done.personal,family:true,income:!!ent(who).done.income}; const first=order.find(k=>!gd[k]&&!(k==='signing'&&!isMain)); const fi=first?order.indexOf(first):order.length; if(order.indexOf(route)>fi) target=first; } }
   if(route==='status'&&!sent.length) target=done[STEPS[STEPS.length-2][0]]?'signing':'podbor';
   useEffect(()=>{if(target!==route){go(target);setToast(target==='podbor'?'Сначала выберите банки на шаге «Подбор условий»':'Шаги анкеты заполняются по порядку')}},[target,route]);
   value.devJump=devJump;
