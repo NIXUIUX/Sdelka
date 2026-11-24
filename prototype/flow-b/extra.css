@@ -741,3 +741,7 @@ body{margin:0}
 .who-score b{font-size:28px;line-height:32px;font-weight:600;font-variant-numeric:tabular-nums}
 .who-score div span{font-size:13px;color:var(--color-text-secondary)}
 @media(max-width:640px){.who-t h2{font-size:18px;line-height:24px}.who-score b{font-size:22px;line-height:26px}}
+.inc-sw{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:var(--radius-16);background:var(--color-surface-page)}
+.inc-sw small{font-size:12px;line-height:16px;color:var(--color-text-secondary)}
+.who-wrap{display:flex;flex-direction:column;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--color-border-default)}
+.who-wrap .who-head{padding-bottom:0;border-bottom:0}

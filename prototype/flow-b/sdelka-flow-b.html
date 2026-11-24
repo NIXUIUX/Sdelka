@@ -920,6 +920,10 @@ body{margin:0}
 .who-score b{font-size:28px;line-height:32px;font-weight:600;font-variant-numeric:tabular-nums}
 .who-score div span{font-size:13px;color:var(--color-text-secondary)}
 @media(max-width:640px){.who-t h2{font-size:18px;line-height:24px}.who-score b{font-size:22px;line-height:26px}}
+.inc-sw{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:var(--radius-16);background:var(--color-surface-page)}
+.inc-sw small{font-size:12px;line-height:16px;color:var(--color-text-secondary)}
+.who-wrap{display:flex;flex-direction:column;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--color-border-default)}
+.who-wrap .who-head{padding-bottom:0;border-bottom:0}
 </style>
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1030,7 +1034,7 @@ const DEFAULT_FILTERS={goal:GOALS[0],program:PROGRAMS[0].n,kids:2,kidsDisabled:f
 const CO_PASSPORT={fio:'Иванова Мария Петровна',birthPlace:'г. Тверь',birthDate:'02.09.1988',citizenship:'Российская Федерация',passNum:'6917 305114',passDate:'15.10.2018',passCode:'690-014',passWho:'УМВД России по Тверской области',regAddr:'г. Тверь, ул. Озёрная, д. 18, кв. 42'};
 const PASSPORT_DATA={fio:'Иванов Иван Иванович',birthPlace:'г. Тверь',birthDate:'17.04.1986',citizenship:'Российская Федерация',passNum:'6915 482731',passDate:'23.07.2015',passCode:'690-014',passWho:'УМВД России по Тверской области',regAddr:'г. Тверь, ул. Озёрная, д. 18, кв. 42'};
 const DEFAULT_ANKETA={recognized:false,fio:'',birthPlace:'',birthDate:'',citizenship:'Российская Федерация',passNum:'',passDate:'',passCode:'',passWho:'',regAddr:'',phone:'',changedName:'Не менялось',gender:'Мужской',inn:'',snils:'',email:'',factDiff:false,factAddr:'',prevPassport:false,
-  marital:'Женат / замужем',spouseExcluded:'Нет',kids:'Нет',spouseCo:false,
+  marital:'Женат / замужем',spouseExcluded:'Нет',kids:'Нет',spouseCo:false,useIncome:false,
   empType:'По найму',contract:'Бессрочный трудовой договор',proof:'Госуслуги / СФР',income:'',salaryBank:'Не выбран',extraIncome:'Нет',org:'',orgInn:'',position:'',workPhone:'',startDate:'',jobs:[],
   edus:[{level:'Выберите',year:'',place:'',spec:''}],eduLevel:'Выберите из списка',expYears:'',jobs3:'',exp5:'Выберите из списка'};
 const go=h=>{location.hash=h?('#'+h):'';window.scrollTo(0,0)};
@@ -1281,10 +1285,11 @@ function PrescoreCard(){
 }
 function StepsNav({current}){
   /* в анкете созаёмщика — его прогресс по персональным данным и доходу; семейное положение берётся у заёмщика */
-  const {done:md,who,partOf}=useApp(); const pd=who==='main'?null:partOf(who).done;
+  const {done:md,who,partOf,a}=useApp(); const pd=who==='main'?null:partOf(who).done;
   const done=pd?{...md,personal:!!pd.personal,income:!!pd.income}:md;
   return html`<section class="side-card"><h4>Шаги анкеты</h4><div class="steps">${STEPS.map(([k,n],i)=>{const cur=k===current, d=done[k]&&!cur;
     /* у созаёмщика этого шага нет — данные о семье берём у заёмщика */
+    if(pd&&k==='income'&&!a.useIncome)return html`<div class="step skip" aria-disabled="true"><span class="n">${ic.minus(14)}</span><span class="t">${n}<small>Доход созаёмщика не учитываем</small></span></div>`;
     if(pd&&k==='family')return html`<div class="step skip" aria-disabled="true"><span class="n">${ic.minus(14)}</span><span class="t">${n}<small>Берём из анкеты заёмщика</small></span></div>`;
     return d?html`<button class="step done" onClick=${()=>go(k)}><span class="n">${ic.check(14)}</span><span class="t">${n}</span>${ic.chevR(18)}</button>`
       :html`<div class=${'step'+(cur?' cur':' locked')} aria-current=${cur?'step':null} aria-disabled=${!cur}><span class="n">${i+1}</span><span class="t">${n}</span></div>`})}</div></section>`;
@@ -1382,10 +1387,12 @@ function FlowHead({current,steps,inParts}){
 /* Чья анкета открыта — показываем, когда в заявке больше одного участника */
 /* Шапка анкеты: явно показываем, чью анкету заполняем — роль, ФИО и кредитный рейтинг из прескоринга */
 function WhoBar({step}){
-  const {who,partOf,prescore}=useApp(); if(!['personal','family','income'].includes(step))return null;
+  const {who,partOf,prescore,setA}=useApp(); if(!['personal','family','income'].includes(step))return null;
   const p=partOf(who), r=pplOf(prescore).find(x=>x.pid===p.id), lv=r&&scoreLvl(r.score);
-  return html`<div class="who-head"><div class="who-t"><small>${p.role}</small><h2>${p.name||(p.id==='spouse'?'Супруг(а)':'Новый участник')}</h2></div>
-    ${r&&html`<div class="who-score"><span class=${'lvl xs '+lv[1]}>Кредитный рейтинг</span><div><b class=${'num sc-'+lv[1]}>${r.score}</b><span>из 999</span></div></div>`}</div>`;
+  return html`<div class="who-wrap"><div class="who-head"><div class="who-t"><small>${p.role}</small><h2>${p.name||(p.id==='spouse'?'Супруг(а)':'Новый участник')}</h2></div>
+    ${r&&html`<div class="who-score"><span class=${'lvl xs '+lv[1]}>Кредитный рейтинг</span><div><b class=${'num sc-'+lv[1]}>${r.score}</b><span>из 999</span></div></div>`}</div>
+    ${who!=='main'&&html`<div class="inc-sw"><${Switch} checked=${!!p.a.useIncome} onChange=${x=>setA(o=>({...o,useIncome:x}))} label="Учитывать доход созаёмщика"/>
+      <small>${p.a.useIncome?'Шаг «Доход и работа» заполним и для созаёмщика':'Банк оценит платёжеспособность только по доходу заёмщика — шаг «Доход и работа» пропустим'}</small></div>`}</div>`;
 }
 function AnketaPage({step,children,onNext,extraSide,alert,primary='Продолжить'}){
   const {flowBack,who}=useApp(); const idx=STEPS.findIndex(s=>s[0]===step);
@@ -2383,7 +2390,7 @@ function Root(){
   const parts=sber?[{id:'main'}]:[{id:'main'},...(a.spouseCo?[{id:'spouse',spouse:true}]:[]),...co];
   const isMain=who==='main'||!parts.some(p=>p.id===who);
   const partOf=id=>{const i=parts.findIndex(p=>p.id===id);const p=parts[i]||{id};const pa=id==='main'?a:ent(id).a;const pd=id==='main'?done:ent(id).done;
-    const filled=id==='main'?!!(done.personal&&done.income):!!(pd.personal&&pd.income);
+    const filled=id==='main'?!!(done.personal&&done.income):!!(pd.personal&&(pd.income||!pa.useIncome));
     return {id,i,a:pa,files:id==='main'?files:ent(id).files,done:pd,filled,name:pa.fio||p.name||'',role:id==='main'?'Заёмщик':p.spouse?'Созаёмщик · супруг(а)':'Созаёмщик'}};
   const toTop=()=>window.scrollTo({top:0,behavior:'smooth'});
   Object.assign(value,{
@@ -2395,10 +2402,12 @@ function Root(){
     switchTo:(id,step)=>{setWho(id);if(id!=='main'&&!['personal','income'].includes(step))go('personal');toTop()},
     removePart:id=>{if(id==='spouse')setA(o=>({...o,spouseCo:false}));setCo(o=>o.filter(c=>c.id!==id));setCoA(m=>{const n={...m};delete n[id];return n});if(who===id)setWho('main')},
     flowNext:step=>{const cur=isMain?'main':who, i=parts.findIndex(p=>p.id===cur);
-      if(step==='personal'){if(isMain)return go(nextOf('personal'));return go('income')}
-      if(step==='income'){const n=parts[i+1];
+      if(step==='personal'){if(isMain)return go(nextOf('personal'));if(ent(cur).a.useIncome)return go("income")}
+      if(step==='income'||step==='personal'){const n=parts[i+1];
         if(n){setWho(n.id);setToast(isMain?'Анкета заёмщика заполнена — теперь анкета созаёмщика':'Анкета созаёмщика заполнена — следующий участник');go('personal');return toTop()}
-        if(!isMain)setWho('main');setToast(parts.length>1?'Анкеты всех участников заполнены':'');return go('signing')}
+        if(!isMain){setWho('main');const k=STEPS.map(x=>x[0]).find(x=>['personal','family','income'].includes(x)&&!done[x]);
+          if(k){setToast('Анкета созаёмщика заполнена — продолжим анкету заёмщика');go(k);return toTop()}}
+        setToast(parts.length>1?'Анкеты всех участников заполнены':'');return go('signing')}
       go(nextOf(step))},
     flowBack:step=>{const cur=isMain?'main':who, i=parts.findIndex(p=>p.id===cur);
       if(isMain){const k=STEPS.findIndex(s=>s[0]===step);return go(k<=1?'podbor':STEPS[k-1][0])}
