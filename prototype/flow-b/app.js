@@ -381,8 +381,7 @@ function Participants({step}){
     <div class="parts-list">${list.map((p,i)=>html`<div class=${'part'+(p.cur?' cur':' sw')} key=${p.id} aria-current=${p.cur?'true':null} onClick=${()=>!p.cur&&switchTo(p.id,step)}>
       <span class="avatar">${p.name?initials(p.name):i+1}</span>
       <div class="tx"><b title=${p.name}>${p.name||'Новый участник'}</b><div class="meta"><small>${p.role}</small><${Badge} tone=${p.state[1]}>${p.state[0]}<//></div>
-        <div class="part-acts">${!p.cur&&html`<button class="part-open" onClick=${e=>{e.stopPropagation();switchTo(p.id,step)}}>${p.filled?'Открыть анкету':'Заполнить анкету'}${ic.chevR(14)}</button>`}
-        ${p.id!=='spouse'&&(()=>{const r=ps(p.id);if(!r)return html`<button class="ps-link" onClick=${e=>{e.stopPropagation();setPsOpen(true)}}>${ic.gauge(14)} Прескоринг</button>`;
+        <div class="part-acts">${p.id!=='spouse'&&(()=>{const r=ps(p.id);if(!r)return html`<button class="ps-link" onClick=${e=>{e.stopPropagation();setPsOpen(true)}}>${ic.gauge(14)} Прескоринг</button>`;
           const lv=scoreLvl(r.score),warn=r.checks.length;
           return html`<button class="ps-mini" onClick=${e=>{e.stopPropagation();setPsOpen(true)}} title="Открыть результат прескоринга">${ic.gauge(14)}<span>Прескоринг</span><b class="num">${r.score}</b><span class=${'lvl xs '+lv[1]}>${lv[0]}</span>${warn?html`<span class="ps-warn">${ic.info(12)} ${warn} ${plural(warn,'замечание','замечания','замечаний')}</span>`:''}</button>`})()}</div></div>
       ${p.removable&&html`<button class="part-x" aria-label="Убрать созаёмщика" onClick=${e=>{e.stopPropagation();removePart(p.id)}}>${ic.x(16)}</button>`}
