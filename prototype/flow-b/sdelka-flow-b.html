@@ -793,6 +793,31 @@ body{margin:0}
 .cs-none{font-size:13px;color:var(--color-text-muted)}
 .cs-empty{font-size:13px;margin:0;padding-top:12px;border-top:1px solid var(--color-border-default)}
 .cp .picked{padding-top:8px;border-top:1px solid var(--color-border-default)}
+/* Выбранный банк раскрывается: свой срок и первый взнос */
+.pk-wrap{border-radius:12px}
+.pk-wrap.open{background:var(--color-surface-page)}
+.pk{padding:0 4px 0 0}
+.pk-h{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:8px;text-align:left;font:inherit;border-radius:12px}
+.pk-h:not(:disabled):hover{background:var(--color-surface-page)}
+.pk-h:disabled{cursor:default;opacity:1}
+.pk-h .cp-chev{flex:none}
+.pk-custom{display:block;color:var(--color-action-primary)!important;font-weight:500}
+.pk-edit{display:flex;flex-direction:column;gap:12px;padding:4px 12px 14px 56px}
+.pk-f{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pk-f.col{flex-direction:column;align-items:stretch;gap:6px}
+.pk-l{display:flex;flex-direction:column;font-size:13px;font-weight:500}.pk-l small{font-size:12px;font-weight:400;color:var(--color-text-secondary)}
+.pk-money{display:flex;align-items:center;gap:6px;height:40px;padding:0 10px;border:1px solid var(--color-border-default);border-radius:10px;background:var(--color-surface-white)}
+.pk-money:focus-within{border-color:var(--color-action-primary)}
+.pk-money.err{border-color:var(--color-error)}
+.pk-money input{flex:1;min-width:0;border:0;outline:0;background:none;font:inherit;font-size:14px;font-variant-numeric:tabular-nums}
+.pk-money span{font-size:14px;color:var(--color-text-secondary)}
+.pk-money b{font-size:12px;font-weight:600;color:var(--color-action-primary);background:var(--color-surface-card);border-radius:6px;padding:1px 6px}
+.pk-err{display:flex;gap:4px;font-size:12px;line-height:16px}
+.pk-res{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;font-size:13px;color:var(--color-text-secondary)}
+.pk-reset{align-self:flex-start;margin:0}
+.pk-hint{font-size:12px;color:var(--color-text-muted)}
+.bank .bank-custom{grid-column:1/-1;display:flex;align-items:center;gap:6px;margin:0;font-size:13px;line-height:18px;color:var(--color-text-secondary)}
+.bank .bank-custom svg{flex:none;color:var(--color-action-primary)}
 </style>
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -1071,13 +1096,47 @@ function CreditParams({banks,backLabel='Изменить параметры по
   </section>`;
 }
 /* Боковая карточка на шаге подбора: что выбрано и на какую сумму */
+/* Выбранный банк: раскрывается, внутри — свой срок и первый взнос для этого банка. Отправленный банк не редактируется */
+function PkRow({o,onRemove}){
+  const {calc,f,sent,termBy,setTermBy,downBy,setDownBy,say}=useApp();
+  const [open,setOpen]=useState(false); const [dErr,setDErr]=useState('');
+  const sx=sent.find(q=>q.name===o.name); const custom=calc.custom(o.name);
+  const lim=bankLimits(BANKS.findIndex(b=>b[0]===o.name),f.program);
+  const t=calc.termOf(o.name), d=calc.downOf(o.name), dp=f.price?d/f.price*100:0;
+  const [dDraft,setDDraft]=useState(d); useEffect(()=>setDDraft(d),[d]);
+  const setT=v=>{v=Math.max(1,Math.min(lim.term,v));setTermBy(x=>{const n={...x};if(v===f.term)delete n[o.name];else n[o.name]=v;return n})};
+  const commitD=v=>{const p=f.price?v/f.price*100:0;
+    if(p<lim.down){setDErr(`В ${o.name} взнос от ${String(lim.down).replace('.',',')}% — от ${rub(Math.ceil(f.price*lim.down/100))}`);return}
+    if(v>=f.price){setDErr('Взнос должен быть меньше стоимости');return}
+    setDErr('');setDownBy(x=>{const n={...x};if(v===f.down)delete n[o.name];else n[o.name]=v;return n})};
+  const reset=()=>{setTermBy(x=>{const n={...x};delete n[o.name];return n});setDownBy(x=>{const n={...x};delete n[o.name];return n});setDErr('');say(`${o.name} — условия как в подборе`)};
+  const pay=calc.payOf(o);
+  const line=sx?(sx.status==='approved'?'Одобрено':'Отправлено')+' '+fmtAt(sx.at):pct(o.rate)+' · '+rub(pay)+' в месяц';
+  return html`<div class=${'pk-wrap'+(open?' open':'')}>
+    <div class="pk"><button class="pk-h" disabled=${!!sx} aria-expanded=${open} onClick=${()=>setOpen(!open)} title=${sx?'Анкета уже отправлена — условия не меняются':'Изменить срок и взнос для этого банка'}>
+        <span class="avatar">${o.ini}</span><span class="tx"><b>${o.name}</b><small class="num">${line}</small>
+        ${custom&&!open&&html`<small class="pk-custom">Свои условия: ${years(t)} · взнос ${pctStr(dp)}</small>`}</span>
+        ${!sx&&html`<span class=${'cp-chev'+(open?' up':'')}>${ic.chev(16)}</span>`}</button>
+      ${sx?html`<span class="pk-lock" title="Анкета уже отправлена в банк — убрать нельзя" aria-label="Анкета отправлена, убрать нельзя">${ic.lock(16)}</span>`:html`<button class="part-x" aria-label=${'Убрать '+o.name} onClick=${()=>onRemove(o.name)}>${ic.x(16)}</button>`}</div>
+    ${open&&html`<div class="pk-edit">
+      <div class="pk-f"><span class="pk-l">Срок кредита<small>в банке до ${years(lim.term)}</small></span>
+        <div class="mini-stp"><button aria-label="Уменьшить срок" disabled=${t<=1} onClick=${()=>setT(t-1)}>${ic.minus(16)}</button><b class="num">${t}</b>
+          <button aria-label="Увеличить срок" disabled=${t>=lim.term} onClick=${()=>setT(t+1)}>${ic.plus(16)}</button></div></div>
+      <div class="pk-f col"><label class="pk-l" for=${'pk-d-'+o.ini}>Первый взнос<small>в банке от ${String(lim.down).replace('.',',')}%</small></label>
+        <div class=${'pk-money'+(dErr?' err':'')}><input id=${'pk-d-'+o.ini} inputmode="numeric" value=${Math.round(dDraft).toLocaleString('ru-RU')}
+          onInput=${e=>setDDraft(+digits(e.target.value)||0)} onBlur=${()=>commitD(dDraft)} onKeyDown=${e=>{if(e.key==='Enter')e.target.blur()}}/><span>₽</span><b>${pctStr(f.price?dDraft/f.price*100:0)}</b></div>
+        ${dErr&&html`<span class="err-text pk-err">${ic.alert(14)}${dErr}</span>`}</div>
+      <div class="pk-res num"><span>Кредит ${rub(calc.loanOf(o.name))}</span><span>Платёж ${rub(pay)} в месяц</span></div>
+      ${custom?html`<button class="link s pk-reset" onClick=${reset}>Вернуть как в подборе</button>`:html`<span class="pk-hint">Изменения касаются только ${o.name}</span>`}
+    </div>`}
+  </div>`;
+}
 function PickedBanks({onRemove}){
   const {selected,calc,f,sent}=useApp(); const list=calc.offers.filter(o=>selected.has(o.name));
   return html`<section class="side-card cp"><div class="cp-h"><h4>Выбранные банки</h4><span class=${'badge num'+(list.length?' accent':'')}>${list.length}</span></div>
     <${CreditSummary} list=${list}/>
     ${isSberOnly(selected)&&html`<div class="sber-note">${ic.info(14)}<span>Короткая анкета: 3 шага и отправка без подписания</span></div>`}
-    ${list.length?html`<div class="picked">${list.map(o=>html`<div class="pk" key=${o.name}><span class="avatar">${o.ini}</span><div class="tx"><b>${o.name}</b><small class="num">${(x=>x?(x.status==='approved'?'Одобрено':'Отправлено')+' '+fmtAt(x.at):pct(o.rate)+' · '+rub(o.pay)+' в месяц')(sent.find(q=>q.name===o.name))}</small></div>
-        ${sent.some(q=>q.name===o.name)?html`<span class="pk-lock" title="Анкета уже отправлена в банк — убрать нельзя" aria-label="Анкета отправлена, убрать нельзя">${ic.lock(16)}</span>`:html`<button class="part-x" aria-label=${'Убрать '+o.name} onClick=${()=>onRemove(o.name)}>${ic.x(16)}</button>`}</div>`)}</div>`
+    ${list.length?html`<div class="picked">${list.map(o=>html`<${PkRow} key=${o.name} o=${o} onRemove=${onRemove}/>`)}</div>`
       :html`<p class="desc cs-empty">Отметьте банки в списке — они появятся здесь</p>`}
   </section>`;
 }
@@ -1285,9 +1344,9 @@ function Podbor(){
             <button class="btn outline s" onClick=${()=>setBankInfo(o.name)}>Подробнее</button></div>
           <div class="metrics num">
             <div class="metric"><span>Ставка</span><b class=${calc.cut?'acc':''}>${pct(o.rate)}</b></div>
-            <div class="metric"><span>Платёж в месяц</span><b>${rub(o.pay)}</b></div>
-            <div class="metric"><span>Рекомендуемый доход</span><b>${rub(o.income)}</b></div>
-          </div>${PERKS[o.name]&&html`<ul class="perks" aria-label="Плюсы банка">${PERKS[o.name].map(t=>html`<li class=${o.salaryCut&&/зарплат/.test(t)?'on':''}>${ic.badgeCheck(14)}<span>${t}${o.salaryCut&&/зарплат/.test(t)?' · учтено в ставке':''}</span></li>`)}</ul>`}
+            <div class="metric"><span>Платёж в месяц</span><b>${rub(calc.payOf(o))}</b></div>
+            <div class="metric"><span>Рекомендуемый доход</span><b>${rub(calc.payOf(o)/0.6)}</b></div>
+          </div>${calc.custom(o.name)&&html`<p class="bank-custom">${ic.pen(14)}<span>Свои условия: ${years(calc.termOf(o.name))} · взнос ${pctStr(calc.downOf(o.name)/s.price*100)}</span></p>`}${PERKS[o.name]&&html`<ul class="perks" aria-label="Плюсы банка">${PERKS[o.name].map(t=>html`<li class=${o.salaryCut&&/зарплат/.test(t)?'on':''}>${ic.badgeCheck(14)}<span>${t}${o.salaryCut&&/зарплат/.test(t)?' · учтено в ставке':''}</span></li>`)}</ul>`}
           ${freeIncome>0&&freeIncome<o.income&&html`<p class="why-warn">${ic.info(14)}<span>Дохода может не хватить: после обязательных платежей ${rub(freeIncome)}, банк ждёт от ${rub(o.income)}</span></p>`}</article>`)
         :html`<div class="empty">${ftab==='sel'?'Вы ещё не выбрали банки — отметьте их галочкой в списке':'Банк не найден. Проверьте название'}</div>`}</div>
       ${rest>0&&html`<button class="more-btn" onClick=${()=>setPage(page+1)}>Ещё ${Math.min(per,rest)} ${plural(Math.min(per,rest),'предложение','предложения','предложений')}${rest>per?' из '+rest:''}${ic.chev(16)}</button>`}
@@ -1937,7 +1996,7 @@ function Signing(){
 /* Параметры, на которых банк одобрил заявку; брокер может поправить их по ответу банка */
 function ApprovedParams({b,o,onSave}){
   const {calc,f}=useApp();
-  const base=b.appr||{sum:calc.loan,rate:+(o.rate-0.4).toFixed(2),term:calc.termOf(b.name)};
+  const base=b.appr||{sum:calc.loanOf(b.name),rate:+(o.rate-0.4).toFixed(2),term:calc.termOf(b.name)};
   const [edit,setEdit]=useState(false); const [d,setD]=useState({sum:String(base.sum),rate:String(base.rate).replace('.',','),term:String(base.term)});
   const pay=annuity(base.sum,base.rate,base.term); const until=new Date(Date.now()+90*864e5).toLocaleDateString('ru-RU');
   const save=()=>{const sum=+digits(d.sum),rate=parseFloat(d.rate.replace(',','.')),term=+digits(d.term);if(!sum||!rate||!term)return;onSave({sum,rate,term});setEdit(false)};
@@ -1953,7 +2012,7 @@ function ApprovedParams({b,o,onSave}){
         <div><span>Сумма кредита</span><b>${rub(base.sum)}</b></div><div><span>Ставка</span><b class="ok">${pct(base.rate)}</b></div>
         <div><span>Срок</span><b>${years(base.term)}</b></div><div><span>Платёж в месяц</span><b>${rub(pay)}</b></div>
         <div><span>Первый взнос</span><b>${rub(f.down)}</b></div><div><span>Решение действует до</span><b>${until}</b></div></div>
-      <p class="desc" style=${{fontSize:'12px',margin:0}}>Направляли: ${pct(o.rate)} · ${rub(calc.loan)} · ${years(calc.termOf(b.name))}${b.appr?' · параметры изменены вручную':''}</p>`}
+      <p class="desc" style=${{fontSize:'12px',margin:0}}>Направляли: ${pct(o.rate)} · ${rub(calc.loanOf(b.name))} · ${years(calc.termOf(b.name))}${b.appr?' · параметры изменены вручную':''}</p>`}
   </div>`;
 }
 function Status(){
@@ -1973,8 +2032,8 @@ function Status(){
   const myMails=mails[b.name]||[];
   const sendMail=()=>{if(!draft.trim()){say('Напишите текст письма');return}const t=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
     setMails(m=>({...m,[b.name]:[...(m[b.name]||[]),{text:draft.trim(),t}]}));setDraft('');setCompose(false);say('Письмо отправлено в '+b.name)};
-  const bankRows=x=>{const ox=offer(x.name),ap=x.appr||(x.status==='approved'?{sum:calc.loan,rate:+(ox.rate-0.4).toFixed(2),term:calc.termOf(x.name)}:null);
-    const r=ap?{sum:ap.sum,rate:ap.rate,term:ap.term}:{sum:calc.loan,rate:ox.rate,term:calc.termOf(x.name)};
+  const bankRows=x=>{const ox=offer(x.name),ap=x.appr||(x.status==='approved'?{sum:calc.loanOf(x.name),rate:+(ox.rate-0.4).toFixed(2),term:calc.termOf(x.name)}:null);
+    const r=ap?{sum:ap.sum,rate:ap.rate,term:ap.term}:{sum:calc.loanOf(x.name),rate:ox.rate,term:calc.termOf(x.name)};
     return [['Ставка',pct(r.rate)],['Платёж в месяц',rub(annuity(r.sum,r.rate,r.term))],['Сумма кредита',rub(r.sum)],['Срок',years(r.term)],['Первый взнос',rub(f.down)],['Программа',f.program]]};
   const toOther=()=>{setSelected(o=>{const x=new Set(o);list.forEach(q=>x.add(q.name));return x});go('podbor')};
   return html`<${AppHeader}/><main class="wrap">
@@ -1983,7 +2042,7 @@ function Status(){
         <div class="p-head"><span class="avatar">${ini}</span><div class="tx"><h2>${b.name}</h2><small>Заявка № 036968-58791 · отправлена ${fmtAt(b.at)}</small></div>${badge(b.status)}</div>
         ${b.status==='approved'
           ?html`<${ApprovedParams} key=${b.name} b=${b} o=${o} onSave=${saveAppr}/>`
-          :html`<div class="cond num"><div><span>Ставка</span><b class="acc">${pct(o.rate)}*</b></div><div><span>Платёж в месяц</span><b>${rub(calc.payOf(o))}</b></div><div><span>Сумма кредита</span><b>${rub(calc.loan)}</b></div><div><span>Срок</span><b>${years(calc.termOf(b.name))}</b></div></div>
+          :html`<div class="cond num"><div><span>Ставка</span><b class="acc">${pct(o.rate)}*</b></div><div><span>Платёж в месяц</span><b>${rub(calc.payOf(o))}</b></div><div><span>Сумма кредита</span><b>${rub(calc.loanOf(b.name))}</b></div><div><span>Срок</span><b>${years(calc.termOf(b.name))}</b></div></div>
             <p class="desc" style=${{fontSize:'12px',marginTop:'-12px'}}>* Направлено по анкете. Окончательные условия подтверждает банк</p>
             <div class="hero-blue"><span class="icon-tile">${ic.clock(24)}</span><h3>Ожидаем решение банка</h3><p>Направленные параметры сохранены. Сумма, ставка и платёж по решению появятся после ответа банка — обычно в течение 1–3 рабочих дней</p></div>`}
         <div class="stack"><div class="row" style=${{justifyContent:'space-between'}}><div class="row" style=${{gap:'8px'}}><span style=${{color:'var(--color-action-primary)'}}>${ic.msg(20)}</span><h3>Переписка с банком</h3></div>
@@ -2060,14 +2119,17 @@ function Root(){
   const [toast,setToast]=useState('');
   const [prescore,setPrescore]=useState(null); const [psOpen,setPsOpen]=useState(false);
   const [termBy,setTermBy]=useState({});
+  /* первый взнос, изменённый для отдельного банка */
+  const [downBy,setDownBy]=useState({});
   const dealId=useMemo(()=>Math.max(...DEALS0.map(d=>d.id))+1,[]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),2800);return()=>clearTimeout(t)},[toast]);
   const prog=PROGRAMS.find(p=>p.n===f.program);
   const loan=Math.max(0,f.price-f.down-(f.certOn?f.certAmount:0));
   const cut=f.subsidyOn&&f.domrf?f.domrf.cut:0;
   const offers=useMemo(()=>BANKS.map(([name,ini,d],i)=>{const sc=f.salaryBank===name?SALARY_CUT[name]||0:0;const rate=Math.max(0.1,prog.r+d-cut-sc);const pay=annuity(loan,rate,f.term);return {name,ini,delta:d,rate,pay,income:pay/0.6,salaryCut:sc,commission:(i*7)%11}}),[f.program,loan,f.term,cut,f.salaryBank]);
-  const value={psOpen,setPsOpen,termBy,setTermBy,prescore,setPrescore,dealId,co,setCo,f,setF,selected,setSelected,client,setClient,a,setA,files,setFiles,sign,setSign,done,sent,setSent,toast,
-    say:setToast,markDone:k=>setDone(o=>({...o,[k]:true})),calc:{loan,cut,offers,termOf:n=>termBy[n]||f.term,payOf:(o,minus=0)=>annuity(loan,o.rate-minus,termBy[o.name]||f.term)},
+  const value={psOpen,setPsOpen,termBy,setTermBy,downBy,setDownBy,prescore,setPrescore,dealId,co,setCo,f,setF,selected,setSelected,client,setClient,a,setA,files,setFiles,sign,setSign,done,sent,setSent,toast,
+    say:setToast,markDone:k=>setDone(o=>({...o,[k]:true})),calc:(()=>{const downOf=n=>downBy[n]!=null?downBy[n]:f.down;const loanOf=n=>Math.max(0,f.price-downOf(n)-(f.certOn?f.certAmount:0));const termOf=n=>termBy[n]||f.term;
+      return {loan,cut,offers,termOf,downOf,loanOf,payOf:(o,minus=0)=>annuity(loanOf(o.name),o.rate-minus,termOf(o.name)),custom:n=>(termBy[n]!=null&&termBy[n]!==f.term)||(downBy[n]!=null&&downBy[n]!==f.down)}})(),
     sendToBanks:names=>setSent(o=>[...o,...names.filter(n=>!o.some(x=>x.name===n)).map(n=>({name:n,status:'sent',at:nowAt()}))])};
   const sber=isSberOnly(selected); STEPS=sber?SBER_STEPS:FULL_STEPS; value.sber=sber;
   const order=STEPS.map(s=>s[0]);
