@@ -673,3 +673,7 @@ body{margin:0}
 /* Заголовок-переключатель карточки: рамка фокуса только с клавиатуры */
 .cp-h:focus:not(:focus-visible){outline:none;box-shadow:none}
 .cp .picked + .cp-params{margin-top:0}
+/* Шаг, который у созаёмщика не заполняется */
+.step.skip{color:var(--color-text-disabled);cursor:default}
+.step.skip .n{background:var(--color-surface-page);color:var(--color-text-muted)}
+.step.skip .t{display:flex;flex-direction:column}.step.skip small{font-size:12px;line-height:16px;color:var(--color-text-muted)}

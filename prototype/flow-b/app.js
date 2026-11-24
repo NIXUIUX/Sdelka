@@ -353,6 +353,8 @@ function StepsNav({current}){
   const {done:md,who,partOf}=useApp(); const pd=who==='main'?null:partOf(who).done;
   const done=pd?{...md,personal:!!pd.personal,income:!!pd.income}:md;
   return html`<section class="side-card"><h4>Шаги анкеты</h4><div class="steps">${STEPS.map(([k,n],i)=>{const cur=k===current, d=done[k]&&!cur;
+    /* у созаёмщика этого шага нет — данные о семье берём у заёмщика */
+    if(pd&&k==='family')return html`<div class="step skip" aria-disabled="true"><span class="n">${ic.minus(14)}</span><span class="t">${n}<small>Берём из анкеты заёмщика</small></span></div>`;
     return d?html`<button class="step done" onClick=${()=>go(k)}><span class="n">${ic.check(14)}</span><span class="t">${n}</span>${ic.chevR(18)}</button>`
       :html`<div class=${'step'+(cur?' cur':' locked')} aria-current=${cur?'step':null} aria-disabled=${!cur}><span class="n">${i+1}</span><span class="t">${n}</span></div>`})}</div></section>`;
 }
